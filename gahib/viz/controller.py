@@ -248,6 +248,45 @@ class VisualizationController:
             return pval, "*"
         return pval, "ns"
 
+    def sort_methods_by_performance_gap(self, focal_method: str = "GAHIB"):
+        """Reorder methods by descending performance gap from the focal method.
+
+        Methods with the largest gap appear on the left; the focal method
+        is placed on the far right.  Uses mean normalised rank across all
+        available metrics (higher-is-better after direction correction).
+        """
+        if self.summary is None or self.summary.empty:
+            return
+
+        available = self.long_data["metric"].unique()
+        method_scores: Dict[str, float] = {}
+
+        for method in self.method_order:
+            scores = []
+            for metric in available:
+                mask = (
+                    (self.summary["method"] == method)
+                    & (self.summary["metric"] == metric)
+                )
+                vals = self.summary.loc[mask, "mean"]
+                if vals.empty:
+                    continue
+                v = vals.values[0]
+                # Invert metrics where lower is better so that a higher
+                # aggregated score always means "better".
+                if not S.METRIC_DIRECTION.get(metric, True):
+                    v = -v
+                scores.append(v)
+            method_scores[method] = np.mean(scores) if scores else -np.inf
+
+        # Sort ascending (worst first), but force focal method to end
+        non_focal = [m for m in self.method_order if m != focal_method]
+        non_focal.sort(key=lambda m: method_scores.get(m, -np.inf))
+        if focal_method in self.method_order:
+            self.method_order = non_focal + [focal_method]
+        else:
+            self.method_order = non_focal
+
     # ------------------------------------------------------------------
     # Figure generation
     # ------------------------------------------------------------------
@@ -453,15 +492,14 @@ class VisualizationController:
                                                 sig_pairs, plot_data)
 
         if panel_label and axes:
-            label_x = -0.18 if methods_present_cache and self._uses_multiline_labels(methods_present_cache) else -0.12
-            S.add_panel_label(axes[0], panel_label, x=label_x, y=1.06)
+            S.add_panel_label(axes[0], panel_label, x=-0.12, y=1.06)
 
     def _add_significance_brackets(self, ax, metric, methods, sig_pairs, data):
         """Add significance brackets between pairs."""
         ymin, ymax = ax.get_ylim()
         y_range = ymax - ymin
-        bracket_y = ymax + y_range * 0.03
-        step = y_range * 0.075 if y_range > 0 else 0.05
+        bracket_y = ymax + y_range * 0.08
+        step = y_range * 0.10 if y_range > 0 else 0.05
 
         valid_pairs = []
         for ma, mb in sig_pairs:
@@ -507,11 +545,11 @@ class VisualizationController:
         # - reduce side whitespace by ensuring each row has 5 panels.
         row_specs = [
             {
-                "title": "Clustering Metrics (1/4)",
+                "title": "Clustering Metrics",
                 "metrics": ["NMI", "ARI", "ASW", "DAV", "CAL"],
             },
             {
-                "title": "COR + DRE Series (UMAP) (2/4)",
+                "title": "COR + DRE Series (UMAP)",
                 "metrics": [
                     "COR",
                     "DRE_umap_distance_correlation",
@@ -521,7 +559,7 @@ class VisualizationController:
                 ],
             },
             {
-                "title": "DRE Series (t-SNE) + Man. dim. (3/4)",
+                "title": "DRE Series (t-SNE) + Man. dim.",
                 "metrics": [
                     "DRE_tsne_distance_correlation",
                     "DRE_tsne_Q_local",
@@ -531,7 +569,7 @@ class VisualizationController:
                 ],
             },
             {
-                "title": "LSE Intrinsic Metrics (4/4)",
+                "title": "LSE Intrinsic Metrics",
                 "metrics": [
                     "LSE_spectral_decay_rate",
                     "LSE_participation_ratio",
@@ -860,40 +898,26 @@ class VisualizationController:
     @staticmethod
     def _format_method_label(label: str) -> str:
         label = S.get_display_name(str(label))
-        if len(label) <= 10:
-            return label
-        if " (" in label:
-            return label.replace(" (", "\n(", 1)
-        parts = label.split("+")
-        if len(parts) >= 3:
-            split_at = max(1, len(parts) // 2)
-            return "+".join(parts[:split_at]) + "\n+" + "+".join(parts[split_at:])
         return label
-
-    def _uses_multiline_labels(self, methods: List[str]) -> bool:
-        return any("\n" in self._format_method_label(method) for method in methods)
 
     def _format_x_axis(self, ax, methods: List[str], font_scale: float = 1.0):
         labels = [self._format_method_label(method) for method in methods]
-        multiline = any("\n" in label for label in labels)
 
-        # Centralized manual controls for x tick label placement
-        # (rotation/alignment/padding/vertical offset).
-        if multiline:
-            rotation = 0
-        elif len(methods) <= 5:
+        # Determine rotation based on label count and max label length
+        max_len = max((len(lbl) for lbl in labels), default=0)
+        if len(methods) <= 5 and max_len <= 10:
             rotation = 22
+        elif len(methods) <= 5:
+            rotation = 35
         elif len(methods) <= 8:
             rotation = 35
         else:
             rotation = 45
         pad = 0.5
         y_offset = -0.014 if rotation > 0 else -0.008
-        ha = "center" if multiline or rotation == 0 else "right"
+        ha = "right"
 
         fontsize = max(7, min(S.FS_TICK, int(84 / max(1, len(methods)))))
-        if multiline:
-            fontsize = max(fontsize - 1, 7)
         fontsize = fontsize * font_scale
         ax.set_xticks(range(len(labels)))
         ax.set_xticklabels(labels)

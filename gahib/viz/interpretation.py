@@ -402,7 +402,7 @@ def fig_interpretation_summary(
 
     S.apply_style()
     fig = plt.figure(figsize=(S.FIG_WIDTH_IN, S.FIG_WIDTH_IN * 0.7))
-    axes = S.grid_of_axes(fig, 2, 2, RECT_SCATTER_2x2, hgap=0.12, wgap=0.10)
+    axes = S.grid_of_axes(fig, 2, 2, RECT_SCATTER_2x2, hgap=0.06, wgap=0.10)
     n = len(dataset_names)
     x = np.arange(n)
 
@@ -1330,7 +1330,7 @@ def fig_themed_bottleneck(
         "Information Bottleneck 2-D Scatter",
         "Most Active Latent Dimension on UMAP",
         gaps_a=(0.02, 0.02),
-        gaps_b=(0.02, 0.02),
+        gaps_b=(0.02, 0.06),
     )
 
 
@@ -1479,7 +1479,7 @@ def fig_themed_summary(
                                fontsize=6)
             ax.tick_params(axis="y", labelsize=6)
             ax.tick_params(axis="x", pad=1)
-            ax.set_title(title, fontsize=S.FS_SMALL + 1, pad=3)
+            ax.set_title(title, fontsize=S.FS_AXIS, pad=3)
             if ylim:
                 ax.set_ylim(*ylim)
 
@@ -1495,7 +1495,7 @@ def fig_themed_summary(
 
     axes_stem = S.grid_of_axes(fig, nrows, ncols,
                                [0.03, stem_bot, 0.93, stem_h],
-                               hgap=0.06, wgap=0.05)
+                               hgap=0.03, wgap=0.05)
 
     for idx, (ds_name, data) in enumerate(all_data.items()):
         r, c = idx // ncols, idx % ncols
@@ -1577,7 +1577,7 @@ def fig_themed_gene_expression(
                             cmap=_GENE_CMAP, s=2, alpha=0.6, rasterized=True)
             gene_name = str(names[rank])
             ax.set_title(f"{_short_ds(ds_name)}: {gene_name}",
-                         fontsize=S.FS_SMALL, pad=1)
+                         fontsize=S.FS_AXIS, pad=2)
             ax.set_xticks([]); ax.set_yticks([])
             cb = plt.colorbar(sc, ax=ax, fraction=0.035, pad=0.01)
             cb.ax.tick_params(labelsize=4)

@@ -88,19 +88,30 @@ def run_experiment_visualization(
     print(f"  Datasets: {csv_count} CSV files")
     print(f"{'='*70}")
 
-    plot_order = _prioritize_gat_on_right(method_order or method_names)
-    sig_pairs = _build_sig_pairs(plot_order)
-
     ctrl = VisualizationController(
         results_dir=tables_dir,
         method_names=method_names,
-        method_order=plot_order,
+        method_order=method_order or method_names,
         palette=palette,
     )
     ctrl.load_all()
 
+    # Order methods by performance gap with GAHIB (worst→best, GAHIB rightmost)
+    focal = None
+    for candidate in reversed(ctrl.method_order):
+        if "gahib" in str(candidate).lower():
+            focal = candidate
+            break
+    if focal:
+        ctrl.sort_methods_by_performance_gap(focal_method=focal)
+    else:
+        ctrl.sort_methods_by_performance_gap(focal_method=ctrl.method_order[-1])
+
+    sig_pairs = _build_sig_pairs(ctrl.method_order)
+
     print(f"\n  Available metrics: {len(ctrl.get_available_metrics())}")
     print(f"  Available datasets: {ctrl.get_available_datasets()}")
+    print(f"  Method order (perf-sorted): {ctrl.method_order}")
 
     results = ctrl.generate_all_figures(
         output_dir=output_dir,
@@ -198,15 +209,16 @@ def main():
     )
 
     # ══════════════════════════════════════════════
-    # Experiment 8: SC Deep Learning Benchmark (12 methods)
+    # Experiment 8: SC Deep Learning Benchmark (8 methods)
     # ══════════════════════════════════════════════
+    # Removed scSMD, scDAC, scGCC, siVAE — degenerate or misleading profiles
     sc_dl_methods = [
-        "scVI", "CellBLAST", "CLEAR", "SCALEX", "scDAC",
-        "scDeepCluster", "scDHMap", "scGNN", "scGCC", "scSMD", "siVAE", "GAHIB"
+        "scVI", "CellBLAST", "CLEAR", "SCALEX",
+        "scDeepCluster", "scDHMap", "scGNN", "GAHIB"
     ]
     sc_dl_palette = dict(zip(sc_dl_methods, [
-        "#0072B2", "#56B4E9", "#009E73", "#F0E442", "#E69F00",
-        "#CC79A7", "#D55E00", "#999999", "#882255", "#44AA99", "#DDCC77", "#AA3377"
+        "#0072B2", "#56B4E9", "#009E73", "#F0E442",
+        "#CC79A7", "#D55E00", "#999999", "#AA3377"
     ]))
     run_experiment_visualization(
         tables_dir=results_base / "sc_deeplearning_benchmark" / "tables",
