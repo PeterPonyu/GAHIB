@@ -1,0 +1,528 @@
+# ============================================================================
+# environment.py - Data Loading, Preprocessing, and Training Loop
+# ============================================================================
+"""
+Unified environment merging GAHIB and CCVGAE data handling:
+- GAHIB-style: raw count preprocessing with adaptive normalization, DataLoader
+- CCVGAE-style: graph construction via scanpy, subgraph sampling
+- Supports both MLP/Transformer (batch-based) and Graph (graph-based) training
+"""
+
+import logging
+import os
+
+from .model import GAHIBModel
+from .mixin import envMixin, scMixin
+import numpy as np
+from scipy.sparse import issparse
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import LabelEncoder
+import torch
+from torch.utils.data import DataLoader, TensorDataset, Dataset
+
+
+class SubgraphDataset(Dataset):
+    """Pre-samples subgraphs for graph training with DataLoader prefetching.
+
+    Each __getitem__ returns pre-tensorized (X_norm, X_raw, edge_index, edge_weight)
+    ready for model.update(). Using num_workers>0 overlaps CPU sampling with GPU compute.
+    """
+
+    def __init__(self, X_norm, X_raw, edge_index, edge_weight, subgraph_size, n_per_epoch):
+        self.X_norm = X_norm          # numpy float32
+        self.X_raw = X_raw            # numpy float32
+        self.edge_index = edge_index  # numpy int array [2, E]
+        self.edge_weight = edge_weight  # numpy float32 [E]
+        self.subgraph_size = subgraph_size
+        self.n_per_epoch = n_per_epoch
+        self.n_obs = X_norm.shape[0]
+        # Pre-allocate remap buffer (one per worker, but ok since Dataset is forked)
+        self._node_remap = np.empty(self.n_obs, dtype=np.int64)
+
+    def __len__(self):
+        return self.n_per_epoch
+
+    def __getitem__(self, idx):
+        size = min(self.subgraph_size, self.n_obs)
+        nodes = np.random.choice(self.n_obs, size, replace=False)
+
+        # Vectorized edge filtering
+        in_sub = np.zeros(self.n_obs, dtype=bool)
+        in_sub[nodes] = True
+        src, dst = self.edge_index[0], self.edge_index[1]
+        mask = in_sub[src] & in_sub[dst]
+
+        if mask.any():
+            self._node_remap[nodes] = np.arange(size)
+            sub_ei = np.stack([self._node_remap[src[mask]], self._node_remap[dst[mask]]])
+            sub_ew = self.edge_weight[mask]
+        else:
+            sub_ei = np.zeros((2, 0), dtype=np.int64)
+            sub_ew = np.zeros(0, dtype=np.float32)
+
+        return (
+            torch.as_tensor(self.X_norm[nodes]),
+            torch.as_tensor(self.X_raw[nodes]),
+            torch.as_tensor(sub_ei, dtype=torch.long),
+            torch.as_tensor(sub_ew, dtype=torch.float32),
+        )
+
+# Limit CPU thread over-subscription: without this, each process spawns
+# threads equal to the total CPU count (e.g. 24), causing severe contention
+# when multiple experiments run in parallel.
+_MAX_THREADS = min(os.cpu_count() or 4, 8)
+torch.set_num_threads(_MAX_THREADS)
+os.environ.setdefault("OMP_NUM_THREADS", str(_MAX_THREADS))
+os.environ.setdefault("MKL_NUM_THREADS", str(_MAX_THREADS))
+# Note: NUMBA_NUM_THREADS is NOT set here because numba's thread pool
+# cannot be resized after initialization (raises RuntimeError). Numba is
+# initialized early by scanpy/umap imports, so setting it here is too late.
+from typing import Optional
+
+logger = logging.getLogger(__name__)
+
+
+def is_raw_counts(X, threshold=0.5):
+    """Heuristically determine if data contains raw integer counts."""
+    if issparse(X):
+        sample_data = X.data[:min(10000, len(X.data))]
+    else:
+        flat_data = X.flatten()
+        sample_data = flat_data[np.random.choice(len(flat_data), min(10000, len(flat_data)), replace=False)]
+
+    sample_data = sample_data[sample_data > 0]
+    if len(sample_data) == 0:
+        return False
+    if np.mean((sample_data > 0) & (sample_data < 1)) > 0.1:
+        return False
+    if np.any(sample_data < 0):
+        return False
+
+    integer_like = np.abs(sample_data - np.round(sample_data)) < 1e-6
+    return np.mean(integer_like) >= threshold
+
+
+def compute_dataset_stats(X):
+    X_dense = X.toarray() if issparse(X) else X
+    return {
+        "sparsity": np.mean(X_dense == 0),
+        "lib_size_mean": X_dense.sum(axis=1).mean(),
+        "lib_size_std": X_dense.sum(axis=1).std(),
+        "max_val": X_dense.max(),
+    }
+
+
+class Env(GAHIBModel, envMixin, scMixin):
+    """
+    Unified environment supporting both batch-based (MLP/Transformer) and
+    graph-based (GAT/GCN/etc.) encoder training.
+
+    For graph encoders, constructs a cell-cell graph from the data and
+    supports subgraph sampling for scalability (CCVGAE-style).
+    """
+
+    def __init__(
+        self,
+        adata, layer, recon, irecon, lorentz, beta, dip, tc, info,
+        hidden_dim, latent_dim, i_dim, lr,
+        use_bottleneck_lorentz, loss_type, device,
+        grad_clip=1.0, adaptive_norm=True, use_layer_norm=True,
+        use_euclidean_manifold=False,
+        train_size=0.7, val_size=0.15, test_size=0.15,
+        batch_size=128, random_seed=42,
+        # Encoder/Decoder selection
+        encoder_type="mlp",
+        feature_decoder_type="mlp",
+        # Transformer
+        attn_embed_dim=64, attn_num_heads=4, attn_num_layers=2,
+        attn_seq_len=8, attn_dropout=0.1,
+        # Graph (CCVGAE)
+        graph_type="GAT",
+        graph_hidden_layers=2,
+        graph_dropout=0.05,
+        graph_Cheb_k=1,
+        graph_alpha=0.5,
+        use_residual=True,
+        use_graph_decoder=False,
+        structure_decoder_type="mlp",
+        decoder_hidden_dim=128,
+        graph_threshold=0,
+        graph_sparse_threshold=None,
+        w_adj=0.0,
+        graph_loss_weight=1.0,
+        # Graph data construction
+        n_neighbors=15,
+        n_var=None,
+        tech="PCA",
+        batch_tech=None,
+        all_feat=False,
+        subgraph_size=512,
+        num_subgraphs_per_epoch=10,
+        **kwargs,
+    ):
+        self.train_size = train_size
+        self.val_size = val_size
+        self.test_size = test_size
+        self.batch_size = batch_size
+        self.random_seed = random_seed
+        self.loss_type = loss_type
+        self.adaptive_norm = adaptive_norm
+        self.encoder_type = encoder_type.lower()
+        self._init_device = device  # Store early for _create_dataloaders
+
+        # Graph-specific storage
+        self.edge_index = None
+        self.edge_weight = None
+        self.n_neighbors = n_neighbors
+        self.subgraph_size = subgraph_size
+        self.num_subgraphs_per_epoch = num_subgraphs_per_epoch
+
+        # Register data
+        if self.encoder_type == "graph":
+            self._register_anndata_graph(
+                adata, layer, latent_dim, n_var, tech, n_neighbors, batch_tech, all_feat
+            )
+        else:
+            self._register_anndata(adata, layer, latent_dim)
+
+        super().__init__(
+            recon=recon, irecon=irecon, lorentz=lorentz, beta=beta,
+            dip=dip, tc=tc, info=info,
+            state_dim=self.n_var, hidden_dim=hidden_dim,
+            latent_dim=latent_dim, i_dim=i_dim, lr=lr,
+            use_bottleneck_lorentz=use_bottleneck_lorentz,
+            loss_type=loss_type, device=device,
+            grad_clip=grad_clip, use_layer_norm=use_layer_norm,
+            use_euclidean_manifold=use_euclidean_manifold,
+            encoder_type=encoder_type,
+            feature_decoder_type=feature_decoder_type,
+            attn_embed_dim=attn_embed_dim, attn_num_heads=attn_num_heads,
+            attn_num_layers=attn_num_layers, attn_seq_len=attn_seq_len,
+            attn_dropout=attn_dropout,
+            graph_type=graph_type,
+            graph_hidden_layers=graph_hidden_layers,
+            graph_dropout=graph_dropout,
+            graph_Cheb_k=graph_Cheb_k,
+            graph_alpha=graph_alpha,
+            use_residual=use_residual,
+            use_graph_decoder=use_graph_decoder,
+            structure_decoder_type=structure_decoder_type,
+            decoder_hidden_dim=decoder_hidden_dim,
+            graph_threshold=graph_threshold,
+            graph_sparse_threshold=graph_sparse_threshold,
+            w_adj=w_adj,
+            graph_loss_weight=graph_loss_weight,
+            **kwargs,
+        )
+
+        # Re-enforce thread limit: torch_geometric import may reset it
+        torch.set_num_threads(_MAX_THREADS)
+
+        self.train_losses = []
+        self.val_losses = []
+        self.val_scores = []
+        self.best_val_loss = float("inf")
+        self.best_model_state = None
+        self.patience_counter = 0
+
+    # ========================================================================
+    # Data Registration (GAHIB-style for MLP/Transformer)
+    # ========================================================================
+
+    def _register_anndata(self, adata, layer, latent_dim):
+        X = adata.layers[layer]
+        if not is_raw_counts(X):
+            raise ValueError(f"Layer '{layer}' does not contain raw counts.")
+
+        X = X.toarray() if issparse(X) else np.asarray(X)
+        X_raw = X.astype(np.float32)
+
+        stats = compute_dataset_stats(X)
+        logger.info("Dataset statistics:")
+        logger.info(f"  Cells: {X.shape[0]:,}, Genes: {X.shape[1]:,}")
+        logger.info(f"  Sparsity: {stats['sparsity']:.2%}, "
+              f"Lib size: {stats['lib_size_mean']:.0f}±{stats['lib_size_std']:.0f}")
+
+        X_log = np.log1p(X)
+
+        if self.adaptive_norm:
+            if stats["sparsity"] > 0.95:
+                X_norm = np.clip(X_log, -5, 5).astype(np.float32)
+            elif stats["lib_size_std"] / stats["lib_size_mean"] > 2.0:
+                cell_means = X_log.mean(axis=1, keepdims=True)
+                cell_stds = X_log.std(axis=1, keepdims=True) + 1e-6
+                X_norm = np.clip((X_log - cell_means) / cell_stds, -10, 10).astype(np.float32)
+            elif stats["max_val"] > 10000:
+                scale = min(1.0, 10.0 / X_log.max())
+                X_norm = np.clip(X_log * scale, -10, 10).astype(np.float32)
+            else:
+                X_norm = np.clip(X_log, -10, 10).astype(np.float32)
+        else:
+            X_norm = np.clip(X_log, -10, 10).astype(np.float32)
+
+        self.n_obs, self.n_var = adata.shape
+
+        try:
+            self.labels = KMeans(
+                n_clusters=min(latent_dim, self.n_obs - 1),
+                n_init=10, random_state=self.random_seed,
+            ).fit_predict(X_norm)
+        except Exception:
+            self.labels = np.random.default_rng(self.random_seed).integers(
+                0, latent_dim, size=self.n_obs
+            )
+
+        rng = np.random.default_rng(self.random_seed)
+        indices = rng.permutation(self.n_obs)
+        n_train = int(self.train_size * self.n_obs)
+        n_val = int(self.val_size * self.n_obs)
+
+        self.train_idx = indices[:n_train]
+        self.val_idx = indices[n_train:n_train + n_val]
+        self.test_idx = indices[n_train + n_val:]
+
+        self.X_train_norm = X_norm[self.train_idx]
+        self.X_train_raw = X_raw[self.train_idx]
+        self.X_val_norm = X_norm[self.val_idx]
+        self.X_val_raw = X_raw[self.val_idx]
+        self.X_test_norm = X_norm[self.test_idx]
+        self.X_test_raw = X_raw[self.test_idx]
+        self.X_norm = X_norm
+        self.X_raw = X_raw
+
+        self.labels_train = self.labels[self.train_idx]
+        self.labels_val = self.labels[self.val_idx]
+        self.labels_test = self.labels[self.test_idx]
+
+        self._create_dataloaders()
+
+    # ========================================================================
+    # Data Registration (CCVGAE-style for Graph encoder)
+    # ========================================================================
+
+    def _register_anndata_graph(self, adata, layer, latent_dim, n_var, tech, n_neighbors, batch_tech, all_feat):
+        """CCVGAE-style preprocessing: normalize, HVG, decompose, build graph."""
+        import scanpy as sc
+
+        # Preprocessing
+        self._preprocess(adata, layer, n_var)
+        self._decomposition(adata, tech, latent_dim)
+
+        if batch_tech:
+            self._batchcorrect(adata, batch_tech, tech, layer)
+
+        if batch_tech == "harmony":
+            use_rep = f"X_harmony_{tech}"
+        elif batch_tech == "scvi":
+            use_rep = "X_scvi"
+        else:
+            use_rep = f"X_{tech}"
+
+        sc.pp.neighbors(adata, n_neighbors=n_neighbors, use_rep=use_rep)
+
+        # Extract features
+        if all_feat:
+            X = adata.layers[layer]
+            X = X.toarray() if issparse(X) else np.asarray(X)
+            self.X_norm = np.log1p(X).astype(np.float32)
+        else:
+            X = adata[:, adata.var["highly_variable"]].X
+            X = X.toarray() if issparse(X) else np.asarray(X)
+            self.X_norm = X.astype(np.float32)
+
+        self.n_obs, self.n_var = self.X_norm.shape
+
+        # Raw counts for reconstruction
+        X_raw = adata.layers[layer]
+        X_raw = X_raw.toarray() if issparse(X_raw) else np.asarray(X_raw)
+        if all_feat:
+            self.X_raw = X_raw.astype(np.float32)
+        else:
+            # Use HVG subset of raw counts
+            hvg_mask = adata.var["highly_variable"].values
+            self.X_raw = X_raw[:, hvg_mask].astype(np.float32)
+
+        # Labels — Leiden on the neighbor graph (unsupervised, no cell_type)
+        _leiden_key = '_gahib_val_leiden'
+        sc.tl.leiden(adata, resolution=1.0, key_added=_leiden_key)
+        self.labels = LabelEncoder().fit_transform(adata.obs[_leiden_key].values)
+
+        # Graph connectivity
+        coo = adata.obsp["connectivities"].tocoo()
+        self.edge_index = np.array([coo.row, coo.col])
+        self.edge_weight = coo.data.astype(np.float32)
+
+        # Simple splits (full graph always available)
+        self.y = np.arange(self.n_obs)
+        self.idx = np.arange(self.n_obs)
+
+        rng = np.random.default_rng(self.random_seed)
+        indices = rng.permutation(self.n_obs)
+        n_train = int(self.train_size * self.n_obs)
+        n_val = int(self.val_size * self.n_obs)
+        self.train_idx = indices[:n_train]
+        self.val_idx = indices[n_train:n_train + n_val]
+        self.test_idx = indices[n_train + n_val:]
+
+        self.X_train_norm = self.X_norm[self.train_idx]
+        self.X_train_raw = self.X_raw[self.train_idx]
+        self.X_val_norm = self.X_norm[self.val_idx]
+        self.X_val_raw = self.X_raw[self.val_idx]
+        self.X_test_norm = self.X_norm[self.test_idx]
+        self.X_test_raw = self.X_raw[self.test_idx]
+
+        self.labels_train = self.labels[self.train_idx]
+        self.labels_val = self.labels[self.val_idx]
+        self.labels_test = self.labels[self.test_idx]
+
+        logger.info(f"Graph constructed: {self.n_obs} nodes, {len(coo.data)} edges")
+        logger.info(f"Data split: Train={len(self.train_idx)}, Val={len(self.val_idx)}, Test={len(self.test_idx)}")
+
+        # Create SubgraphDataset + DataLoader for prefetched graph training
+        _dev = getattr(self, 'device', getattr(self, '_init_device', 'cpu'))
+        _is_cuda = _dev.type == "cuda" if hasattr(_dev, "type") else ("cuda" in str(_dev))
+        self._subgraph_dataset = SubgraphDataset(
+            self.X_norm, self.X_raw, self.edge_index, self.edge_weight,
+            self.subgraph_size, self.num_subgraphs_per_epoch,
+        )
+        self._subgraph_loader = DataLoader(
+            self._subgraph_dataset, batch_size=None, shuffle=False,
+            num_workers=2 if _is_cuda else 0,
+            pin_memory=_is_cuda,
+            persistent_workers=True if _is_cuda else False,
+        )
+
+    # ========================================================================
+    # DataLoaders (for MLP/Transformer)
+    # ========================================================================
+
+    def _create_dataloaders(self):
+        train_ds = TensorDataset(torch.FloatTensor(self.X_train_norm), torch.FloatTensor(self.X_train_raw))
+        val_ds = TensorDataset(torch.FloatTensor(self.X_val_norm), torch.FloatTensor(self.X_val_raw))
+        test_ds = TensorDataset(torch.FloatTensor(self.X_test_norm), torch.FloatTensor(self.X_test_raw))
+
+        # pin_memory enables async CPU→GPU transfer with non_blocking=True
+        # num_workers>0 prefetches next batch while GPU processes current one
+        _dev = getattr(self, 'device', getattr(self, '_init_device', 'cpu'))
+        use_cuda = _dev.type == "cuda" if hasattr(_dev, "type") else ("cuda" in str(_dev))
+        loader_kw = dict(
+            pin_memory=use_cuda,
+            num_workers=2 if use_cuda else 0,
+            persistent_workers=True if use_cuda else False,
+        )
+        self.train_loader = DataLoader(train_ds, batch_size=self.batch_size, shuffle=True, drop_last=True, **loader_kw)
+        self.val_loader = DataLoader(val_ds, batch_size=self.batch_size, shuffle=False, drop_last=False, **loader_kw)
+        self.test_loader = DataLoader(test_ds, batch_size=self.batch_size, shuffle=False, drop_last=False, **loader_kw)
+
+    # ========================================================================
+    # Training
+    # ========================================================================
+
+    def _sample_subgraph(self, rng):
+        """Sample a node-induced subgraph for mini-batch graph training."""
+        n = self.n_obs
+        size = min(self.subgraph_size, n)
+        nodes = rng.choice(n, size, replace=False)
+
+        # Vectorized membership test using a boolean lookup array
+        in_subgraph = np.zeros(n, dtype=bool)
+        in_subgraph[nodes] = True
+
+        # Filter edges: both endpoints must be in the subgraph
+        src, dst = self.edge_index[0], self.edge_index[1]
+        mask = in_subgraph[src] & in_subgraph[dst]
+
+        if mask.any():
+            # Vectorized remapping: build old→new index via argsort
+            node_remap = np.empty(n, dtype=np.int64)
+            node_remap[nodes] = np.arange(size)
+            sub_ei = np.array([node_remap[src[mask]], node_remap[dst[mask]]])
+            sub_ew = self.edge_weight[mask]
+        else:
+            sub_ei = np.zeros((2, 0), dtype=np.int64)
+            sub_ew = np.zeros(0, dtype=np.float32)
+
+        return nodes, sub_ei, sub_ew
+
+    def train_epoch(self):
+        """One training epoch (batch-based for MLP/Transformer, subgraph-sampled for Graph)."""
+        self.nn.train()
+        epoch_losses = []
+
+        if self.encoder_type == "graph":
+            # Prefetched subgraph training: DataLoader workers sample while GPU computes
+            for batch_norm, batch_raw, sub_ei, sub_ew in self._subgraph_loader:
+                self.update(batch_norm, batch_raw, sub_ei, sub_ew)
+                if len(self.loss) > 0:
+                    epoch_losses.append(self.loss[-1][0])
+        else:
+            # Mini-batch training — pass tensors directly to update()
+            for batch_norm, batch_raw in self.train_loader:
+                self.update(batch_norm, batch_raw)
+                if len(self.loss) > 0:
+                    epoch_losses.append(self.loss[-1][0])
+
+        avg = np.mean(epoch_losses) if epoch_losses else 0.0
+        self.train_losses.append(avg)
+        return avg
+
+    def validate(self):
+        """Evaluate on validation set with clustering metrics."""
+        self.nn.eval()
+        all_latents = []
+
+        with torch.no_grad():
+            if self.encoder_type == "graph":
+                # Graph encoder needs full graph; extract val indices afterwards
+                full_latent = self.take_latent(self.X_norm, self.edge_index, self.edge_weight)
+                all_latents.append(full_latent[self.val_idx])
+            else:
+                for batch_norm, _ in self.val_loader:
+                    latent = self.take_latent(batch_norm)
+                    all_latents.append(latent)
+
+        all_latents = np.concatenate(all_latents, axis=0)
+        val_score = self._calc_score_with_labels(all_latents, self.labels_val)
+        self.val_scores.append(val_score)
+
+        # Approximate val loss
+        avg_val_loss = -val_score[2]  # Negative silhouette as proxy
+        self.val_losses.append(avg_val_loss)
+        return avg_val_loss, val_score
+
+    def validate_loss(self):
+        """Fast validation: use recent training loss trend as early stopping signal.
+
+        Avoids the expensive clustering metric computation while still
+        providing a reasonable signal for early stopping. Uses an exponential
+        moving average of the training loss.
+        """
+        if len(self.train_losses) < 2:
+            val_loss = self.train_losses[-1] if self.train_losses else 0.0
+        else:
+            # Smoothed training loss (EMA over last 5 epochs)
+            window = min(5, len(self.train_losses))
+            recent = self.train_losses[-window:]
+            alpha = 0.4
+            ema = recent[0]
+            for v in recent[1:]:
+                ema = alpha * v + (1 - alpha) * ema
+            val_loss = ema
+
+        self.val_losses.append(val_loss)
+        return val_loss
+
+    def check_early_stopping(self, val_loss, patience=25):
+        if val_loss < self.best_val_loss:
+            self.best_val_loss = val_loss
+            self.best_model_state = {k: v.cpu().clone() for k, v in self.nn.state_dict().items()}
+            self.patience_counter = 0
+            return False, True
+        else:
+            self.patience_counter += 1
+            return self.patience_counter >= patience, False
+
+    def load_best_model(self):
+        if self.best_model_state is not None:
+            self.nn.load_state_dict(self.best_model_state)
+            logger.info(f"Loaded best model (val_loss={self.best_val_loss:.4f})")
