@@ -499,8 +499,8 @@ class VisualizationController:
         """Add significance brackets between pairs."""
         ymin, ymax = ax.get_ylim()
         y_range = ymax - ymin
-        bracket_y = ymax + y_range * 0.04
-        step = y_range * 0.10 if y_range > 0 else 0.05
+        bracket_y = ymax + y_range * 0.015
+        step = y_range * 0.088 if y_range > 0 else 0.05
 
         valid_pairs = []
         for ma, mb in sig_pairs:
@@ -524,15 +524,15 @@ class VisualizationController:
         for x1, x2, stars in valid_pairs:
             y = bracket_y + bracket_count * step
 
-            arm_h = step * 0.20
+            arm_h = step * 0.18
             ax.plot([x1, x1, x2, x2],
                     [y, y + arm_h, y + arm_h, y],
-                    lw=1.2, c="black")
-            # Anchor the stars to the bracket arm (centered on the arm
-            # horizontally, baseline flush with the arm itself).
-            ax.text((x1 + x2) / 2, y + arm_h * 0.1, stars,
-                    ha="center", va="bottom",
-                    fontsize=S.FS_TITLE + 2,
+                    lw=1.3, c="black")
+            # Sit the stars tucked into the arm — not above it — and
+            # scale them up for better legibility on the composed grid.
+            ax.text((x1 + x2) / 2, y + arm_h * 0.45, stars,
+                    ha="center", va="center",
+                    fontsize=S.FS_TITLE + 5,
                     fontweight="normal")
             bracket_count += 1
 

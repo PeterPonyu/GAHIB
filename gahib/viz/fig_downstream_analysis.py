@@ -60,12 +60,17 @@ def _apply_style():
     plt.rcParams.update(_RC)
 
 
-def _row_label(fig, label, y, x=0.012, fontsize=18):
-    """Emit a single bold panel label at the left edge of a full row,
-    vertically centred on that row."""
-    fig.text(x, y, f"({label})",
+def _row_label_from_axes(fig, axes, label, *, dx=0.015, fontsize=20):
+    """Emit a single bold panel label at the vertical centre of the row
+    that `axes` belongs to. The label is placed at dx to the left of
+    the axes' left edge in figure coordinates so it never overlaps
+    subplot content or tick labels.
+    """
+    ax = axes if not isinstance(axes, (list, tuple)) else axes[0]
+    bbox = ax.get_position()
+    fig.text(bbox.x0 - dx, bbox.y0 + bbox.height / 2.0, f"({label})",
              fontsize=fontsize, fontweight="bold",
-             ha="left", va="center")
+             ha="right", va="center")
 
 
 def _wrap_term(term: str, width: int = 22, max_lines: int = 3) -> str:
@@ -184,35 +189,28 @@ def fig_downstream_analysis(trajectory_base: str | Path,
     fig = plt.figure(figsize=(4.0 * n_traj, 19.0))
 
     # Layout constants: five trajectory rows (a-e) + one GO row (f) share
-    # the page. Row heights are computed so that we can drop a single
-    # vertically-centred panel label on the left of each row rather than
-    # one above every subplot.
+    # the page. Labels are placed relative to the first column's axes
+    # bbox after layout, so hspace/wspace don't drift them off-centre.
     TOP_T = 0.965
     TOP_B = 0.545
     BOT_T = 0.495
     BOT_B = 0.06
     TOP_HSPACE = 0.60
     top_height_ratios = [1.0, 1.0, 1.0, 1.0, 0.85]
-    top_total = sum(top_height_ratios)
 
-    # Top gridspec (trajectory panels)
+    # Top gridspec (trajectory panels). Left margin reserves room for
+    # the row labels without letting them bleed into the plot area.
     top_gs = fig.add_gridspec(
         5, n_traj,
         height_ratios=top_height_ratios,
         hspace=TOP_HSPACE, wspace=0.40,
-        left=0.07, right=0.97,
+        left=0.10, right=0.97,
         top=TOP_T, bottom=TOP_B,
     )
 
-    # Compute the vertical centre of each trajectory row in figure
-    # coordinates so the row labels sit exactly beside their row.
-    row_centres: list[float] = []
-    _h = (TOP_T - TOP_B) / top_total
-    _y = TOP_T
-    for i, hr in enumerate(top_height_ratios):
-        centre = _y - _h * hr / 2.0
-        row_centres.append(centre)
-        _y -= _h * hr
+    # Collect the leftmost axes of each trajectory row for label
+    # placement after everything is drawn.
+    row_axes: list[plt.Axes] = [None] * 5
 
     gene_summary_data = []  # list of (title, abs_mean_gahib, pca, umap)
 
@@ -232,6 +230,8 @@ def fig_downstream_analysis(trajectory_base: str | Path,
 
         # Row 1: clusters
         ax = fig.add_subplot(top_gs[0, col])
+        if col == 0:
+            row_axes[0] = ax
         unique = sorted(np.unique(labels).tolist())
         cmap = plt.get_cmap("tab20", max(len(unique), 2))
         for i, lbl in enumerate(unique):
@@ -247,6 +247,8 @@ def fig_downstream_analysis(trajectory_base: str | Path,
 
         # Row 2: GAHIB pt
         ax = fig.add_subplot(top_gs[1, col])
+        if col == 0:
+            row_axes[1] = ax
         sc = ax.scatter(umap_xy[:, 0], umap_xy[:, 1], c=gahib_pt,
                         cmap="viridis", s=3, alpha=0.85, edgecolor="none",
                         rasterized=True)
@@ -261,6 +263,8 @@ def fig_downstream_analysis(trajectory_base: str | Path,
         # Row 3: top negative gene
         gname, gvec, gr = top_neg
         ax = fig.add_subplot(top_gs[2, col])
+        if col == 0:
+            row_axes[2] = ax
         ax.scatter(gahib_pt, gvec, s=5, alpha=0.45,
                    color="#0072B2", edgecolor="none", rasterized=True)
         ax.text(0.03, 0.97,
@@ -277,6 +281,8 @@ def fig_downstream_analysis(trajectory_base: str | Path,
         # Row 4: top positive gene
         gname, gvec, gr = top_pos
         ax = fig.add_subplot(top_gs[3, col])
+        if col == 0:
+            row_axes[3] = ax
         ax.scatter(gahib_pt, gvec, s=5, alpha=0.45,
                    color="#D55E00", edgecolor="none", rasterized=True)
         ax.text(0.03, 0.97,
@@ -295,6 +301,7 @@ def fig_downstream_analysis(trajectory_base: str | Path,
     # baseline pseudotimes (PCA distance, UMAP distance) by the mean |r|
     # of the top-20 HVGs.
     ax = fig.add_subplot(top_gs[4, :])
+    row_axes[4] = ax
     if gene_summary_data:
         titles = [t for t, *_ in gene_summary_data]
         g_vals = [g for _, g, _, _ in gene_summary_data]
@@ -321,8 +328,9 @@ def fig_downstream_analysis(trajectory_base: str | Path,
         ax.set_axisbelow(True)
 
     # Emit one row-level panel label per row (a-e), vertically centred.
-    for letter, centre in zip("abcde", row_centres):
-        _row_label(fig, letter, y=centre)
+    for letter, ax_row in zip("abcde", row_axes):
+        if ax_row is not None:
+            _row_label_from_axes(fig, ax_row, letter)
 
     # ── Bottom region: tissue-specific GO enrichment panels ──
     # Wrapped GO term labels free up horizontal space; tighten wspace
@@ -331,9 +339,10 @@ def fig_downstream_analysis(trajectory_base: str | Path,
     bot_gs = fig.add_gridspec(
         1, n_go,
         wspace=0.55,
-        left=0.07, right=0.99,
+        left=0.10, right=0.99,
         top=BOT_T, bottom=BOT_B,
     )
+    go_row_first_ax = None
 
     for panel_i, (ds_name, title, tissue) in enumerate(go_datasets):
         csv = go_base / f"go_{ds_name}_all.csv"
@@ -370,6 +379,8 @@ def fig_downstream_analysis(trajectory_base: str | Path,
             matrix[i, j] = row["neg_log_p"]
 
         ax = fig.add_subplot(bot_gs[0, panel_i])
+        if panel_i == 0:
+            go_row_first_ax = ax
         vmin = np.nanmin(matrix)
         vmax = np.nanmax(matrix)
         im = ax.imshow(matrix, cmap="YlOrRd", aspect="auto",
@@ -406,7 +417,8 @@ def fig_downstream_analysis(trajectory_base: str | Path,
         cbar.set_label(r"$-\log_{10}$ adj. p", fontsize=7)
 
     # Single row-level label (f) centred on the GO heatmap row.
-    _row_label(fig, "f", y=(BOT_T + BOT_B) / 2.0)
+    if go_row_first_ax is not None:
+        _row_label_from_axes(fig, go_row_first_ax, "f")
 
     fig.suptitle(
         "Downstream analysis: trajectory / pseudotime and GO-term "

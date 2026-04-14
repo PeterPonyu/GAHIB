@@ -1219,8 +1219,8 @@ def _themed_dual_grid(
     # Shrink the between-section gap so (a) and (b) read as a coherent
     # pair, and enlarge the within-section row gap so each sub-subplot
     # has breathing space for its dataset title.
-    sec_gap  = 0.035
-    base_h   = 0.41
+    sec_gap  = 0.045
+    base_h   = 0.415
     grid_h_a = base_h
     grid_h_b = base_h * ratio_b
 
@@ -1348,8 +1348,8 @@ def fig_themed_embedding_poincare(
         all_data, _fill_umap, _fill_poincare,
         "UMAP Embedding by Cluster",
         "Poincaré Disk Projection by Cluster",
-        gaps_a=(0.035, 0.014),
-        gaps_b=(0.035, 0.014),
+        gaps_a=(0.015, 0.013),
+        gaps_b=(0.012, 0.013),
         spines_b=False,
         ratio_b=1.10,
     )
@@ -1393,8 +1393,8 @@ def fig_themed_bottleneck(
         all_data, _fill_ib, _fill_latent,
         "Information Bottleneck 2-D Scatter",
         "Most Active Latent Dimension on UMAP",
-        gaps_a=(0.035, 0.014),
-        gaps_b=(0.035, 0.014),
+        gaps_a=(0.015, 0.013),
+        gaps_b=(0.012, 0.013),
     )
 
 
@@ -1438,8 +1438,8 @@ def fig_themed_hyperbolic(
         all_data, _fill_umap_norm, _fill_poincare_norm,
         "UMAP Coloured by Lorentz Norm",
         "Poincaré Disk Coloured by Lorentz Norm",
-        gaps_a=(0.035, 0.014),
-        gaps_b=(0.035, 0.014),
+        gaps_a=(0.015, 0.013),
+        gaps_b=(0.012, 0.013),
         spines_b=False,
         ratio_b=1.10,
     )
@@ -1498,10 +1498,10 @@ def fig_themed_gene_stemness(
 
     margin_l = 0.02
     grid_w   = 0.96
-    grid_h_a = 0.41                            # (a) gene expr — 2-row titles
-    grid_h_b = 0.41                            # (b) stemness  — 1-row titles
-    sec_gap  = 0.035                           # tighter a↔b gap
-    wgap     = 0.014
+    grid_h_a = 0.415                            # (a) gene expr — 2-row titles
+    grid_h_b = 0.415                            # (b) stemness  — 1-row titles
+    sec_gap  = 0.045                           # tighter a↔b gap
+    wgap     = 0.012
 
     top_a    = 0.95
     bot_a    = top_a - grid_h_a
