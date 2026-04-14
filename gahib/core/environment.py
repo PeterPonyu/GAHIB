@@ -491,23 +491,52 @@ class Env(GAHIBModel, envMixin, scMixin):
         return avg_val_loss, val_score
 
     def validate_loss(self):
-        """Fast validation: use recent training loss trend as early stopping signal.
+        """Fast validation using actual held-out loss for early stopping.
 
-        Avoids the expensive clustering metric computation while still
-        providing a reasonable signal for early stopping. Uses an exponential
-        moving average of the training loss.
+        For graph encoders: uses the last training loss but with a smoothing
+        window that detects plateaus. For MLP/Transformer: computes actual
+        validation forward pass on val_loader.
+
+        The key improvement over pure EMA: uses a plateau detector that
+        compares recent loss window against earlier window, triggering
+        early stopping when improvement stalls.
         """
-        if len(self.train_losses) < 2:
-            val_loss = self.train_losses[-1] if self.train_losses else 0.0
+        if self.encoder_type != "graph" and hasattr(self, 'val_loader'):
+            # MLP/Transformer: actual validation forward pass
+            self.nn.eval()
+            val_losses = []
+            with torch.no_grad():
+                for batch_norm, batch_raw in self.val_loader:
+                    batch_norm = batch_norm.to(self.device)
+                    batch_raw = batch_raw.to(self.device)
+                    ei = None
+                    ew = None
+                    outputs = self.nn(batch_norm, ei, ew)
+                    recon = self._compute_reconstruction_loss(
+                        batch_raw, outputs.pred_x, outputs.dropout_x)
+                    kl = self.beta * self._normal_kl(
+                        outputs.q_m, outputs.q_s,
+                        torch.zeros_like(outputs.q_m),
+                        torch.zeros_like(outputs.q_s),
+                    ).sum(dim=-1).mean()
+                    val_losses.append((recon + kl).item())
+            val_loss = float(np.mean(val_losses)) if val_losses else 0.0
         else:
-            # Smoothed training loss (EMA over last 5 epochs)
-            window = min(5, len(self.train_losses))
-            recent = self.train_losses[-window:]
-            alpha = 0.4
-            ema = recent[0]
-            for v in recent[1:]:
-                ema = alpha * v + (1 - alpha) * ema
-            val_loss = ema
+            # Graph encoder: plateau-aware smoothed training loss
+            # Compare recent window vs earlier window to detect stalling
+            if len(self.train_losses) < 4:
+                val_loss = self.train_losses[-1] if self.train_losses else 0.0
+            else:
+                window = min(10, len(self.train_losses) // 2)
+                recent = np.mean(self.train_losses[-window:])
+                earlier = np.mean(self.train_losses[-2*window:-window])
+                # Use recent average, but add penalty if improvement < 0.1%
+                relative_improvement = (earlier - recent) / (abs(earlier) + 1e-8)
+                if relative_improvement < 0.005:
+                    # Plateau: inflate loss to trigger early stopping
+                    val_loss = recent + abs(recent) * 0.01
+                else:
+                    val_loss = recent
 
         self.val_losses.append(val_loss)
         return val_loss

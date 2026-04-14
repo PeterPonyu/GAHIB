@@ -36,25 +36,70 @@ SEED = 42
 EXCLUDE = ['GSE120575_melanomaHmCancer', 'GSE225948_bloodMmStrokeDev']
 
 SELECTED_DATASETS = [
-    # Cancer (6)
-    'GSE98638_TcellLiverHmCancer',
-    'GSE117988_MCCTumorCancer',
+    # ── Cancer (27) ──────────────────────────────────────────────────
+    # CancerDatasets/
+    'GSE123813_bccHmCancer',
+    'GSE123813_sccHmCancer',
+    'GSE123902_LungAdreHmCancer',
+    'GSE132509_acutelymluekPBMCHmCancer',
+    'GSE143423_lbm_CancerBrainHm',
+    'GSE143423_tnbc_CancerBrainHm',
+    'GSE148218_bmALLHmCancer',
     'GSE155109_bcECHmCancer',
+    'GSE155109_bcStromaHmCancer',
+    'GSE183904_GastricHmCancer',
+    'GSE222002_TcellsHmCancer',
+    'GSE222369_NKsLymphomaHmCancer',
+    'GSE225600_breast_CancerHm',
+    'GSE235787_bcellsALLHmCancer',
+    'GSE262288_breastMetasisHmCancer',
+    'GSE98638_TcellLiverHmCancer',
+    # CancerDatasets2/
+    'GSE117988_MCCPBMCCancer',
+    'GSE117988_MCCTumorCancer',
+    'GSE124310_MMHmCancer',
+    'GSE138709_LiverCancer',
     'GSE149655_CAHmCancer',
-    'GSE283205_hepatoblastomaCancer',
+    'GSE163558_stomachHmCancer',
     'GSE168181_BreastHmCancer',
-    # Development (6)
-    'endo',
-    'GSE142653pitHmDev',
-    'setty',
-    'hESC_GSE144024',
-    'GSE130148_LungHmDev',
+    'GSE189357_lungAdreHmCancer',
+    'GSE225857_liverColonMetasisHmCancer',
+    'GSE228499_breastHmCancer',
+    'GSE283205_hepatoblastomaCancer',
+    # ── Development (26) ─────────────────────────────────────────────
+    # DevelopmentDatasets/
+    'GSE120505_bloodAged',
+    'GSE148215_hESCHSPCD8Hm',
+    'GSE165844_LSKMmBatch',
+    'GSE167597_spineMm',
+    'GSE192857_hESCHmTimes',
+    'GSE226131_HSCMmAged',
+    'GSE253355_bmNicheHm',
+    'bm_GSE120446',
     'dentate',
+    'endo',
+    'hESC_GSE144024',
+    'hemato',
+    'ifnHSPC_GSE226824',
+    'lung',
+    'setty',
+    # DevelopmentDatasets2/
+    'GSE115571_LPSMmDev',
+    'GSE130148_LungHmDev',
+    'GSE142653pitHmDev',
+    'GSE145929_ProgastinMmDev',
+    'GSE145929_UrineMmDev',
+    'GSE165784_RetinaHmDev',
+    'GSE189070_astrocytesSCIMmDev',
+    'GSE213740_ADHm',
+    'GSE247719_PanSci_05_Muscle_adata',
+    'GSE247719_PanSci_T_cell_adata',
+    'GSE275119_TeethMmDev',
 ]
 
 
 def discover_datasets():
-    """Find all h5ad files and filter to selected 12.
+    """Find all h5ad files and filter to selected 53.
 
     Dataset directories are configurable via the GAHIB_DATASET_DIRS environment
     variable (colon-separated list of paths). Falls back to ~/Downloads/ defaults.
@@ -76,12 +121,18 @@ def discover_datasets():
 
     selected = []
     for name in SELECTED_DATASETS:
-        matches = [f for f in all_files
-                   if name in os.path.basename(f).replace('.h5ad', '')]
-        if matches:
-            selected.append(matches[0])
+        # Prefer exact filename match, then fall back to substring
+        exact = [f for f in all_files
+                 if os.path.basename(f).replace('.h5ad', '') == name]
+        if exact:
+            selected.append(exact[0])
         else:
-            print(f"⚠ Dataset not found: {name}")
+            matches = [f for f in all_files
+                       if name in os.path.basename(f).replace('.h5ad', '')]
+            if matches:
+                selected.append(matches[0])
+            else:
+                print(f"⚠ Dataset not found: {name}")
     return selected
 
 

@@ -75,7 +75,7 @@ ENV/
 *.loom
 data/
 
-# Results
+# Results (benchmarks, figures, tables)
 results/
 GAHIB_results/
 benchmark_results/
@@ -84,34 +84,23 @@ figures/
 *.json
 *.png
 
-# Paper / article assets
+# Paper / cover letter / submission assets — treated as products, not
+# part of the public code release.
+paper/
+cover_letter/
 *.pdf
 *.bib
 FIGURE_INDEX.md
 STUDY_REPORT.md
-!paper/FIGURE_INDEX.md
-!paper/references.bib
-!paper/gahib_paper.tex
-!paper/Makefile
-!paper/.gitignore
-!paper/figures/
-!paper/figures/*.pdf
-paper/*.aux
-paper/*.bbl
-paper/*.blg
-paper/*.fdb_latexmk
-paper/*.fls
-paper/*.log
-paper/*.out
-paper/*.spl
-paper/*.pdf
-paper/cover_letter.tex
-paper/cover_letter.aux
-paper/cover_letter.log
-paper/cover_letter.out
-paper/cover_letter.pdf
-paper/.omc/
-paper/figures/*.png
 
-# Editor/tool artifacts
+# Figure-generation / publication-plot sources — treated as internal
+# tooling, not part of the public code release.
+gahib/viz/
+experiments/run_interpretation.py
+experiments/run_go_enrichment.py
+experiments/downstream_analysis.py
+
+# OMC / editor state
+.omc/
+.claude/
 apply-cursor-agent-edits.prompt.md

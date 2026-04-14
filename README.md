@@ -1,35 +1,42 @@
 # GAHIB
 
-GAHIB is a PyTorch package for learning single-cell latent spaces with a graph-attention variational autoencoder, an information bottleneck, and a hyperbolic geometry loss.
-The repository also contains the experiment runners and figure generators used for the paper.
+A PyTorch implementation of a graph-attention variational autoencoder with
+an information bottleneck and a Lorentz hyperbolic geometry loss, applied
+to single-cell RNA-seq latent representation learning.
 
-## What the package does
+## What it does
 
-- Learns latent representations from scRNA-seq count matrices.
-- Supports MLP, Transformer, and graph encoders, including GAT, GCN, GraphSAGE, ChebConv, TAG, GraphTransformer, ARMA, and related PyTorch Geometric modules.
-- Supports NB, ZINB, Poisson, and ZIP reconstruction models.
-- Includes optional information-bottleneck, Euclidean, and Lorentz-hyperbolic regularisers.
-- Includes optional SDE and PDE modules for trajectory-style experiments.
-- Provides experiment scripts, benchmark aggregation, and publication figure generation.
+Given a `scanpy` `AnnData` with raw counts, GAHIB fits a VAE whose encoder
+can be an MLP, a Transformer, or a graph neural network (GAT, GCN,
+GraphSAGE, ChebConv, TAG, GraphTransformer, ARMA). The latent code is
+shaped by three losses:
 
-## Installation
+- a reconstruction term (NB, ZINB, Poisson, or ZIP),
+- an information-bottleneck term that compresses the latent into a 2D
+  manifold coordinate, and
+- a Lorentz-hyperbolic term that anchors the manifold coordinate on the
+  hyperboloid so radial distance encodes hierarchy.
+
+Optional SDE and PDE modules are provided for trajectory experiments.
+
+## Install
 
 ```bash
 pip install -e .
+# optional extras
 pip install -e ".[all]"
 pip install -e ".[dev]"
 ```
 
-The repository expects Python 3.9+.
-The exact dependency list is in `pyproject.toml`.
+Python 3.9 or later. Full dependency list in `pyproject.toml`.
 
-## Minimal example
+## Usage
 
 ```python
 import scanpy as sc
 from gahib import GAHIB
 
-adata = sc.read_h5ad("data/BoneMarrow/human_cd34_bone_marrow.h5ad")
+adata = sc.read_h5ad("data/human_cd34_bone_marrow.h5ad")
 
 model = GAHIB(
     adata,
@@ -43,74 +50,48 @@ model = GAHIB(
 )
 
 model.fit(epochs=200, patience=30)
-latent = model.get_latent()
+Z = model.get_latent()
 ```
 
-For a plain VAE without graph encoding, leave `encoder_type` at its default.
+Set `encoder_type="mlp"` (default) for a plain VAE without the graph
+encoder.
 
 ## Important constraint
 
-The geometry loss needs the information bottleneck.
-If `irecon=0`, the bottleneck target is not trained, so the geometry distance is not meaningful.
-The code already enforces this relation.
+The hyperbolic loss depends on the information-bottleneck target. With
+`irecon=0`, the bottleneck coordinate is untrained and the Lorentz
+distance becomes degenerate. The model enforces this dependency
+internally.
 
-## Common outputs
+## Main outputs
 
-- `model.get_latent()` returns the learned embedding.
-- `model.get_time()` returns the trajectory-style time estimate when the relevant module is enabled.
-- `model.get_centroid()` returns latent centroids.
+| Call                  | Returns                               |
+| --------------------- | ------------------------------------- |
+| `model.get_latent()`  | the learned embedding                 |
+| `model.get_time()`    | the trajectory time estimate (if SDE) |
+| `model.get_centroid()`| per-cluster latent centroids          |
 
-## Running the paper assets
+## Experiment runners
 
-Paper figures are exposed through `paper/figures/` and are generated from the results under `GAHIB_results/`.
-From the repository root:
-
-```bash
-python -m gahib.viz.fig_overview
-python -m gahib.viz.fig_architecture
-python -m gahib.viz.fig_dataset_taxonomy
-python -m gahib.viz.run_all_visualizations
-python -m gahib.viz.fig_downstream_analysis
-python experiments/run_interpretation.py --figures-only
-```
-
-To rebuild the manuscript:
-
-```bash
-cd paper
-make figures
-make
-```
-
-## Main experiment scripts
-
-- `python experiments/run_ablation.py`
-- `python experiments/run_sc_deeplearning_benchmark.py`
-- `python experiments/run_classical_benchmark.py`
-- `python experiments/run_gmvae_benchmark.py`
-- `python experiments/run_disentanglement.py`
-- `python experiments/run_encoder_comparison.py`
-- `python experiments/run_graph_conv_sweep.py`
-- `python experiments/run_latent_dim_ablation.py`
-- `python experiments/run_seed_robustness.py`
-- `python experiments/run_computational_cost.py`
-- `python experiments/run_hyperparam_sensitivity.py`
-- `python experiments/run_interpretation.py`
+The `experiments/` directory contains reproducible runners for the
+benchmark and robustness studies. Each runner takes its dataset paths
+from `GAHIB_DATASET_DIRS` and writes results to
+`GAHIB_results/{study}/`.
 
 ## Repository layout
 
-- `gahib/`: package source code.
-- `experiments/`: benchmark and analysis runners.
-- `data/`: local datasets used by the experiments.
-- `GAHIB_results/`: generated benchmark outputs and figures.
-- `paper/`: manuscript source and paper assets.
-- `tests/`: test suite.
+```text
+gahib/       package source (core model, metrics, interpretation)
+experiments/ benchmark and robustness runners
+tests/       pytest suite
+```
 
-## Current study scope
+## Tests
 
-The current paper version evaluates 53 scRNA-seq datasets across 11 study tracks: seven comparative benchmarks and four robustness studies.
-The manuscript and the detailed results live in `paper/` and `STUDY_REPORT.md`.
+```bash
+pytest
+```
 
 ## License
 
-See `LICENSE`.
+MIT. See `LICENSE`.
