@@ -84,12 +84,34 @@ figures/
 *.json
 *.png
 
-# Paper / article assets (local only, not tracked in remote)
-paper/
+# Paper / article assets
 *.pdf
 *.bib
 FIGURE_INDEX.md
 STUDY_REPORT.md
+!paper/FIGURE_INDEX.md
+!paper/references.bib
+!paper/gahib_paper.tex
+!paper/Makefile
+!paper/.gitignore
+!paper/figures/
+!paper/figures/*.pdf
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.log
+paper/*.out
+paper/*.spl
+paper/*.pdf
+paper/cover_letter.tex
+paper/cover_letter.aux
+paper/cover_letter.log
+paper/cover_letter.out
+paper/cover_letter.pdf
+paper/.omc/
+paper/figures/*.png
 
 # Editor/tool artifacts
 apply-cursor-agent-edits.prompt.md

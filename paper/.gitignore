@@ -1,0 +1,25 @@
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+
+# Generated PDF (rebuild with make)
+gahib_paper.pdf
+cover_letter.pdf
+
+# Paper figure previews
+figures/*.png
+
+# Editor temp files
+*~
+*.swp
+.DS_Store
