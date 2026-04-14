@@ -499,8 +499,8 @@ class VisualizationController:
         """Add significance brackets between pairs."""
         ymin, ymax = ax.get_ylim()
         y_range = ymax - ymin
-        bracket_y = ymax + y_range * 0.08
-        step = y_range * 0.13 if y_range > 0 else 0.07
+        bracket_y = ymax + y_range * 0.04
+        step = y_range * 0.10 if y_range > 0 else 0.05
 
         valid_pairs = []
         for ma, mb in sig_pairs:
@@ -524,13 +524,13 @@ class VisualizationController:
         for x1, x2, stars in valid_pairs:
             y = bracket_y + bracket_count * step
 
-            arm_h = step * 0.22
+            arm_h = step * 0.20
             ax.plot([x1, x1, x2, x2],
                     [y, y + arm_h, y + arm_h, y],
                     lw=1.2, c="black")
-            # Place stars flush with the bracket top — slightly inside so
-            # the marker reads as attached to the bar, not floating above.
-            ax.text((x1 + x2) / 2, y + arm_h - step * 0.02, stars,
+            # Anchor the stars to the bracket arm (centered on the arm
+            # horizontally, baseline flush with the arm itself).
+            ax.text((x1 + x2) / 2, y + arm_h * 0.1, stars,
                     ha="center", va="bottom",
                     fontsize=S.FS_TITLE + 2,
                     fontweight="normal")
@@ -901,22 +901,34 @@ class VisualizationController:
                 seen.add(mapped)
         return normalized
 
-    @staticmethod
-    def _format_method_label(label: str) -> str:
-        label = S.get_display_name(str(label))
-        return label
+    # Short display aliases: used on x-tick labels to avoid redundant
+    # prefixes ("GM-VAE (Eucl.)" → "Eucl.") and long words ("Graph
+    # Transformer" → "G-Trans") that otherwise clip the figure border.
+    _LABEL_ABBREVIATIONS = {
+        "GM-VAE (Eucl.)":   "Eucl.",
+        "GM-VAE (Poinc.)":  "Poinc.",
+        "GM-VAE (PGM)":     "PGM",
+        "GM-VAE (L-PGM)":   "L-PGM",
+        "GM-VAE (HW)":      "HW",
+        "GraphTransformer": "G-Trans",
+    }
+
+    @classmethod
+    def _format_method_label(cls, label: str) -> str:
+        display = S.get_display_name(str(label))
+        return cls._LABEL_ABBREVIATIONS.get(display, display)
 
     def _format_x_axis(self, ax, methods: List[str], font_scale: float = 1.0):
         labels = [self._format_method_label(method) for method in methods]
 
-        # Determine rotation based on label count and max label length
+        # Keep rotation generous across the board so the all-metrics
+        # row reads consistently — previously ablation sat at only 22°
+        # and visually clashed with the other benchmark panels.
         max_len = max((len(lbl) for lbl in labels), default=0)
-        if len(methods) <= 5 and max_len <= 10:
-            rotation = 22
-        elif len(methods) <= 5:
-            rotation = 35
+        if len(methods) <= 5 and max_len <= 6:
+            rotation = 30
         elif len(methods) <= 8:
-            rotation = 35
+            rotation = 40
         else:
             rotation = 45
         pad = 0.5

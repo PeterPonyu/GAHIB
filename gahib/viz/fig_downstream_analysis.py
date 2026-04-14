@@ -60,10 +60,12 @@ def _apply_style():
     plt.rcParams.update(_RC)
 
 
-def _panel_label(ax, label, x=-0.18, y=1.06, fontsize=14):
-    ax.text(x, y, f"({label})", transform=ax.transAxes,
-            fontsize=fontsize, fontweight="bold",
-            va="bottom", ha="left")
+def _row_label(fig, label, y, x=0.012, fontsize=18):
+    """Emit a single bold panel label at the left edge of a full row,
+    vertically centred on that row."""
+    fig.text(x, y, f"({label})",
+             fontsize=fontsize, fontweight="bold",
+             ha="left", va="center")
 
 
 def _wrap_term(term: str, width: int = 22, max_lines: int = 3) -> str:
@@ -83,20 +85,76 @@ def _wrap_term(term: str, width: int = 22, max_lines: int = 3) -> str:
     return "\n".join(lines)
 
 
+def _top_k_abs_mean(r_vals: np.ndarray, k: int = 20) -> float:
+    return float(np.mean(np.sort(np.abs(r_vals))[-k:]))
+
+
+def _pearson_vs_genes(pt: np.ndarray, X: np.ndarray) -> np.ndarray:
+    pt_c = pt - pt.mean()
+    pt_n = pt_c / (np.linalg.norm(pt_c) + 1e-12)
+    Xc = X - X.mean(axis=0, keepdims=True)
+    Xn = Xc / (np.linalg.norm(Xc, axis=0, keepdims=True) + 1e-12)
+    return (Xn * pt_n[:, None]).sum(axis=0)
+
+
 def _load_trajectory_panel(tables_dir: Path, ds_name: str):
-    """Return (umap_xy, labels, gahib_pt, top_neg, top_pos, abs_mean_top20)
-    or None if not reconstructible."""
-    from .fig_trajectory import _maybe_recompute_gene_panel
+    """Return a dict with UMAP coords, labels, GAHIB pseudotime, the top
+    ±-correlated gene tracks, and baseline mean |r| for PCA / UMAP
+    pseudotimes — or None if the dataset can't be reconstructed."""
     npz_file = tables_dir / f"traj_{ds_name}_pts.npz"
     if not npz_file.exists():
         return None
     data = np.load(str(npz_file), allow_pickle=True)
-    recovered = _maybe_recompute_gene_panel(ds_name, data)
-    if recovered is None:
+    gahib_pt = np.asarray(data["gahib_pt"], dtype=np.float32)
+    pca_pt = np.asarray(data["pca_pt"], dtype=np.float32)
+    umap_pt = np.asarray(data["umap_pt"], dtype=np.float32)
+
+    # Try to re-load adata via exp_utils so correlations are computed
+    # against the raw gene panel (not just GAHIB's top-20 slice).
+    try:
+        import sys
+        sys.path.insert(
+            0, str(Path(__file__).resolve().parent.parent.parent / "experiments"))
+        from exp_utils import discover_datasets, load_and_preprocess  # type: ignore
+        import scipy.sparse as sp
+        import scanpy as sc
+
+        match = [f for f in discover_datasets() if ds_name in Path(f).name]
+        if not match or len(gahib_pt) == 0:
+            return None
+        adata = load_and_preprocess(match[0])
+        if adata.n_obs != gahib_pt.shape[0]:
+            return None
+        X = adata.X.toarray() if sp.issparse(adata.X) else np.asarray(adata.X)
+        X = np.asarray(X, dtype=np.float32)
+
+        r_gahib = _pearson_vs_genes(gahib_pt, X)
+        r_pca = _pearson_vs_genes(pca_pt, X)
+        r_umap = _pearson_vs_genes(umap_pt, X)
+
+        var_names = np.asarray(adata.var_names.astype(str))
+        order = np.argsort(r_gahib)
+        neg_i, pos_i = int(order[0]), int(order[-1])
+        top_neg = (str(var_names[neg_i]), X[:, neg_i], float(r_gahib[neg_i]))
+        top_pos = (str(var_names[pos_i]), X[:, pos_i], float(r_gahib[pos_i]))
+
+        sc.pp.pca(adata, n_comps=30)
+        sc.pp.neighbors(adata, n_neighbors=15, use_rep="X_pca")
+        sc.tl.umap(adata, min_dist=0.3, n_components=2)
+        umap_xy = adata.obsm["X_umap"].astype(np.float32)
+
+        return {
+            "umap_xy": umap_xy,
+            "labels": data["labels"],
+            "gahib_pt": gahib_pt,
+            "top_neg": top_neg,
+            "top_pos": top_pos,
+            "abs_mean_gahib": _top_k_abs_mean(r_gahib),
+            "abs_mean_pca": _top_k_abs_mean(r_pca),
+            "abs_mean_umap": _top_k_abs_mean(r_umap),
+        }
+    except Exception:
         return None
-    umap_xy, top_neg, top_pos, abs_mean = recovered
-    return (umap_xy, data["labels"], data["gahib_pt"],
-            top_neg, top_pos, abs_mean)
 
 
 def fig_downstream_analysis(trajectory_base: str | Path,
@@ -125,23 +183,52 @@ def fig_downstream_analysis(trajectory_base: str | Path,
 
     fig = plt.figure(figsize=(4.0 * n_traj, 19.0))
 
-    # Top region: trajectory panels (rows a..d and summary e)
+    # Layout constants: five trajectory rows (a-e) + one GO row (f) share
+    # the page. Row heights are computed so that we can drop a single
+    # vertically-centred panel label on the left of each row rather than
+    # one above every subplot.
+    TOP_T = 0.965
+    TOP_B = 0.545
+    BOT_T = 0.495
+    BOT_B = 0.06
+    TOP_HSPACE = 0.60
+    top_height_ratios = [1.0, 1.0, 1.0, 1.0, 0.85]
+    top_total = sum(top_height_ratios)
+
+    # Top gridspec (trajectory panels)
     top_gs = fig.add_gridspec(
         5, n_traj,
-        height_ratios=[1.0, 1.0, 1.0, 1.0, 0.85],
-        hspace=0.62, wspace=0.40,
-        left=0.06, right=0.97,
-        top=0.965, bottom=0.545,
+        height_ratios=top_height_ratios,
+        hspace=TOP_HSPACE, wspace=0.40,
+        left=0.07, right=0.97,
+        top=TOP_T, bottom=TOP_B,
     )
 
-    gene_summary_data = []
+    # Compute the vertical centre of each trajectory row in figure
+    # coordinates so the row labels sit exactly beside their row.
+    row_centres: list[float] = []
+    _h = (TOP_T - TOP_B) / top_total
+    _y = TOP_T
+    for i, hr in enumerate(top_height_ratios):
+        centre = _y - _h * hr / 2.0
+        row_centres.append(centre)
+        _y -= _h * hr
+
+    gene_summary_data = []  # list of (title, abs_mean_gahib, pca, umap)
 
     for col, (ds_name, title) in enumerate(trajectory_datasets):
         rec = _load_trajectory_panel(tables_dir, ds_name)
         if rec is None:
             continue
-        umap_xy, labels, gahib_pt, top_neg, top_pos, abs_mean = rec
-        gene_summary_data.append((title, abs_mean))
+        umap_xy = rec["umap_xy"]
+        labels = rec["labels"]
+        gahib_pt = rec["gahib_pt"]
+        top_neg = rec["top_neg"]
+        top_pos = rec["top_pos"]
+        gene_summary_data.append(
+            (title, rec["abs_mean_gahib"], rec["abs_mean_pca"],
+             rec["abs_mean_umap"])
+        )
 
         # Row 1: clusters
         ax = fig.add_subplot(top_gs[0, col])
@@ -155,10 +242,8 @@ def fig_downstream_analysis(trajectory_base: str | Path,
         ax.set_xlabel("UMAP-1", fontsize=8)
         ax.set_ylabel("UMAP-2", fontsize=8)
         ax.set_xticks([]); ax.set_yticks([])
-        ax.set_title(f"{title}\nLeiden clusters" if col == 0 else title,
+        ax.set_title(f"{title} — Leiden clusters" if col == 0 else title,
                      fontsize=10, pad=4)
-        if col == 0:
-            _panel_label(ax, "a")
 
         # Row 2: GAHIB pt
         ax = fig.add_subplot(top_gs[1, col])
@@ -170,7 +255,6 @@ def fig_downstream_analysis(trajectory_base: str | Path,
         ax.set_xticks([]); ax.set_yticks([])
         if col == 0:
             ax.set_title("GAHIB Lorentz pseudotime", fontsize=10, pad=4)
-            _panel_label(ax, "b")
         cbar = plt.colorbar(sc, ax=ax, fraction=0.035, pad=0.02)
         cbar.ax.tick_params(labelsize=6.5)
 
@@ -187,9 +271,8 @@ def fig_downstream_analysis(trajectory_base: str | Path,
         ax.set_xlabel("GAHIB pseudotime", fontsize=8)
         ax.set_ylabel("Norm. expression", fontsize=8)
         if col == 0:
-            ax.set_title("Early / progenitor-like gene\n(expr. ↓ with pt)",
+            ax.set_title("Early / progenitor-like gene (expr. ↓ with pt)",
                          fontsize=10, pad=4)
-            _panel_label(ax, "c")
 
         # Row 4: top positive gene
         gname, gvec, gr = top_pos
@@ -204,27 +287,42 @@ def fig_downstream_analysis(trajectory_base: str | Path,
         ax.set_xlabel("GAHIB pseudotime", fontsize=8)
         ax.set_ylabel("Norm. expression", fontsize=8)
         if col == 0:
-            ax.set_title("Lineage-commitment gene\n(expr. ↑ with pt)",
+            ax.set_title("Lineage-commitment gene (expr. ↑ with pt)",
                          fontsize=10, pad=4)
-            _panel_label(ax, "d")
 
-    # Row 5 (summary bar spans all trajectory columns)
+    # Row 5 (summary bars spanning all trajectory columns): compare the
+    # biological alignment of GAHIB's hyperbolic pseudotime with two
+    # baseline pseudotimes (PCA distance, UMAP distance) by the mean |r|
+    # of the top-20 HVGs.
     ax = fig.add_subplot(top_gs[4, :])
     if gene_summary_data:
-        titles, vals = zip(*gene_summary_data)
+        titles = [t for t, *_ in gene_summary_data]
+        g_vals = [g for _, g, _, _ in gene_summary_data]
+        p_vals = [p for _, _, p, _ in gene_summary_data]
+        u_vals = [u for _, _, _, u in gene_summary_data]
         x = np.arange(len(titles))
-        ax.bar(x, vals, width=0.55, color="#D55E00",
-               alpha=0.88, edgecolor="#333", linewidth=0.6)
+        w = 0.26
+        ax.bar(x - w, g_vals, w, color="#D55E00", alpha=0.92,
+               edgecolor="#333", linewidth=0.5, label="GAHIB Lorentz pt")
+        ax.bar(x,     p_vals, w, color="#0072B2", alpha=0.85,
+               edgecolor="#333", linewidth=0.5, label="PCA distance")
+        ax.bar(x + w, u_vals, w, color="#009E73", alpha=0.85,
+               edgecolor="#333", linewidth=0.5, label="UMAP distance")
         ax.set_xticks(x)
         ax.set_xticklabels(titles, fontsize=9)
         ax.set_ylabel("Mean |Pearson r| of top-20 HVGs", fontsize=9)
         ax.set_title(
-            "Biological alignment of GAHIB pseudotime with top gene programmes",
-            fontsize=10.5, pad=6)
-        ax.set_ylim(0, max(1.0, max(vals) * 1.15))
+            "Biological alignment of GAHIB pseudotime vs. PCA / UMAP "
+            "baselines", fontsize=10.5, pad=6)
+        y_ceiling = max(max(g_vals + p_vals + u_vals) * 1.18, 0.5)
+        ax.set_ylim(0, y_ceiling)
+        ax.legend(loc="upper right", fontsize=8, frameon=False, ncol=3)
         ax.grid(axis="y", linewidth=0.4, alpha=0.3)
         ax.set_axisbelow(True)
-        _panel_label(ax, "e", x=-0.045, y=1.10)
+
+    # Emit one row-level panel label per row (a-e), vertically centred.
+    for letter, centre in zip("abcde", row_centres):
+        _row_label(fig, letter, y=centre)
 
     # ── Bottom region: tissue-specific GO enrichment panels ──
     # Wrapped GO term labels free up horizontal space; tighten wspace
@@ -233,11 +331,9 @@ def fig_downstream_analysis(trajectory_base: str | Path,
     bot_gs = fig.add_gridspec(
         1, n_go,
         wspace=0.55,
-        left=0.06, right=0.99,
-        top=0.475, bottom=0.07,
+        left=0.07, right=0.99,
+        top=BOT_T, bottom=BOT_B,
     )
-
-    panel_letters = list("fghijklmn")
 
     for panel_i, (ds_name, title, tissue) in enumerate(go_datasets):
         csv = go_base / f"go_{ds_name}_all.csv"
@@ -309,8 +405,8 @@ def fig_downstream_analysis(trajectory_base: str | Path,
         cbar.ax.tick_params(labelsize=7)
         cbar.set_label(r"$-\log_{10}$ adj. p", fontsize=7)
 
-        if panel_i < len(panel_letters):
-            _panel_label(ax, panel_letters[panel_i], x=-0.28, y=1.05)
+    # Single row-level label (f) centred on the GO heatmap row.
+    _row_label(fig, "f", y=(BOT_T + BOT_B) / 2.0)
 
     fig.suptitle(
         "Downstream analysis: trajectory / pseudotime and GO-term "

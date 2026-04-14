@@ -412,7 +412,7 @@ def fig_interpretation_summary(
     ax = axes[0][0]
     ax.bar(x, homophily_scores, color="#009E73", alpha=0.8)
     ax.set_xticks(x)
-    ax.set_xticklabels(short_names, rotation=45, ha="right", fontsize=S.FS_SMALL)
+    ax.set_xticklabels(short_names, rotation=45, ha="right", fontsize=S.FS_TICK)
     ax.set_ylabel("Homophily", fontsize=S.FS_AXIS)
     ax.set_title("GAT Attention Homophily", fontsize=S.FS_TITLE)
     ax.set_ylim(0, 1)
@@ -422,7 +422,7 @@ def fig_interpretation_summary(
     ax = axes[0][1]
     ax.bar(x, mean_lorentz_norms, color="#0072B2", alpha=0.8)
     ax.set_xticks(x)
-    ax.set_xticklabels(short_names, rotation=45, ha="right", fontsize=S.FS_SMALL)
+    ax.set_xticklabels(short_names, rotation=45, ha="right", fontsize=S.FS_TICK)
     ax.set_ylabel("Mean norm", fontsize=S.FS_AXIS)
     ax.set_title("Hyperbolic Radius", fontsize=S.FS_TITLE)
     S.add_panel_label(ax, "b")
@@ -431,7 +431,7 @@ def fig_interpretation_summary(
     ax = axes[1][0]
     ax.bar(x, mean_ib_retention, color="#D55E00", alpha=0.8)
     ax.set_xticks(x)
-    ax.set_xticklabels(short_names, rotation=45, ha="right", fontsize=S.FS_SMALL)
+    ax.set_xticklabels(short_names, rotation=45, ha="right", fontsize=S.FS_TICK)
     ax.set_ylabel("Mean MSE", fontsize=S.FS_AXIS)
     ax.set_title("Bottleneck Retention", fontsize=S.FS_TITLE)
     S.add_panel_label(ax, "c")
@@ -440,13 +440,13 @@ def fig_interpretation_summary(
     ax = axes[1][1]
     ax.bar(x, n_active_dims, color="#CC79A7", alpha=0.8)
     ax.set_xticks(x)
-    ax.set_xticklabels(short_names, rotation=45, ha="right", fontsize=S.FS_SMALL)
+    ax.set_xticklabels(short_names, rotation=45, ha="right", fontsize=S.FS_TICK)
     ax.set_ylabel("Active dims", fontsize=S.FS_AXIS)
     ax.set_title("Dimension Utilization", fontsize=S.FS_TITLE)
     ax.set_ylim(0, max(n_active_dims) + 2)
     S.add_panel_label(ax, "d")
 
-    fig.suptitle("Interpretation Summary", fontsize=S.FS_TITLE + 2, y=1.02)
+    fig.suptitle("Interpretation Summary", fontsize=S.FS_TITLE + 4, y=1.02)
     return fig
 
 
@@ -1104,18 +1104,61 @@ def _load_all_arrays(
 
 # Short display names for panel titles (strip GSE prefix noise)
 _DS_SHORT = {
-    "GSE98638_TcellLiverHmCancer": "TcellLiver",
-    "GSE117988_MCCTumorCancer": "MCCTumor",
+    # ── Cancer (27) ──────────────────────────────────────────────────
+    "GSE123813_bccHmCancer": "BCC",
+    "GSE123813_sccHmCancer": "SCC",
+    "GSE123902_LungAdreHmCancer": "LungAdre",
+    "GSE132509_acutelymluekPBMCHmCancer": "AML-PBMC",
+    "GSE143423_lbm_CancerBrainHm": "BrainLBM",
+    "GSE143423_tnbc_CancerBrainHm": "BrainTNBC",
+    "GSE148218_bmALLHmCancer": "BM-ALL",
     "GSE155109_bcECHmCancer": "bcEC",
+    "GSE155109_bcStromaHmCancer": "bcStroma",
+    "GSE183904_GastricHmCancer": "Gastric",
+    "GSE222002_TcellsHmCancer": "Tcells",
+    "GSE222369_NKsLymphomaHmCancer": "NKLymph",
+    "GSE225600_breast_CancerHm": "BreastCA",
+    "GSE235787_bcellsALLHmCancer": "B-ALL",
+    "GSE262288_breastMetasisHmCancer": "BreastMet",
+    "GSE98638_TcellLiverHmCancer": "TcellLiver",
+    "GSE117988_MCCPBMCCancer": "MCC-PBMC",
+    "GSE117988_MCCTumorCancer": "MCCTumor",
+    "GSE124310_MMHmCancer": "Myeloma",
+    "GSE138709_LiverCancer": "LiverCA",
     "GSE149655_CAHmCancer": "CA",
-    "GSE283205_hepatoblastomaCancer": "Hepatobl.",
+    "GSE163558_stomachHmCancer": "Stomach",
     "GSE168181_BreastHmCancer": "Breast",
-    "endo": "Endo",
-    "GSE142653pitHmDev": "Pituitary",
-    "setty": "Setty",
-    "hESC_GSE144024": "hESC",
-    "GSE130148_LungHmDev": "Lung",
+    "GSE189357_lungAdreHmCancer": "LungAdre2",
+    "GSE225857_liverColonMetasisHmCancer": "LivColMet",
+    "GSE228499_breastHmCancer": "BreastHm",
+    "GSE283205_hepatoblastomaCancer": "Hepatobl.",
+    # ── Development (26) ─────────────────────────────────────────────
+    "GSE120505_bloodAged": "BloodAged",
+    "GSE148215_hESCHSPCD8Hm": "hESC-CD8",
+    "GSE165844_LSKMmBatch": "LSK-Mm",
+    "GSE167597_spineMm": "Spine-Mm",
+    "GSE192857_hESCHmTimes": "hESC-Time",
+    "GSE226131_HSCMmAged": "HSC-Aged",
+    "GSE253355_bmNicheHm": "BM-Niche",
+    "bm_GSE120446": "BM-120446",
     "dentate": "Dentate",
+    "endo": "Endo",
+    "hESC_GSE144024": "hESC",
+    "hemato": "Hemato",
+    "ifnHSPC_GSE226824": "IFN-HSPC",
+    "lung": "Lung",
+    "setty": "Setty",
+    "GSE115571_LPSMmDev": "LPS-Mm",
+    "GSE130148_LungHmDev": "LungDev",
+    "GSE142653pitHmDev": "Pituitary",
+    "GSE145929_ProgastinMmDev": "Progast-Mm",
+    "GSE145929_UrineMmDev": "Urine-Mm",
+    "GSE165784_RetinaHmDev": "Retina",
+    "GSE189070_astrocytesSCIMmDev": "Astro-SCI",
+    "GSE213740_ADHm": "Alzheimer",
+    "GSE247719_PanSci_05_Muscle_adata": "Muscle",
+    "GSE247719_PanSci_T_cell_adata": "PanSci-T",
+    "GSE275119_TeethMmDev": "Teeth-Mm",
 }
 
 
@@ -1124,13 +1167,22 @@ def _short_ds(name: str) -> str:
 
 
 def _section_header(fig, x, y, label, title, fontsize=None):
-    """Place a section header with bold panel label and normal title text."""
-    fs = fontsize or S.FS_TITLE
+    """Place a section header with panel label and normal title text."""
+    label_fs = S.FS_LABEL + 2
+    title_fs = fontsize or (S.FS_TITLE + 4)
     fig.text(x, y, f"({label})",
-             fontsize=fs, fontweight="bold", va="bottom", ha="left",
-             path_effects=[pe.withStroke(linewidth=2.0, foreground="white")])
-    fig.text(x + 0.025, y, f"  {title}",
-             fontsize=fs, fontweight="normal", va="bottom", ha="left")
+             fontsize=label_fs, fontweight="normal", va="bottom", ha="left",
+             path_effects=[pe.withStroke(linewidth=2.5, foreground="white")])
+    fig.text(x + 0.035, y, f"  {title}",
+             fontsize=title_fs, fontweight="normal", va="bottom", ha="left")
+
+
+def _auto_grid(n, max_cols=8):
+    """Compute (nrows, ncols) for *n* panels, capped at *max_cols*."""
+    import math
+    ncols = min(n, max_cols)
+    nrows = math.ceil(n / ncols)
+    return nrows, ncols
 
 
 def _themed_dual_grid(
@@ -1143,37 +1195,50 @@ def _themed_dual_grid(
     gaps_a: Optional[Tuple[float, float]] = None,
     gaps_b: Optional[Tuple[float, float]] = None,
     spines_b: bool = True,
+    ratio_b: float = 1.0,
 ) -> plt.Figure:
-    """Helper: two vertically-stacked 3x4 grids on a single 17x21 cm page.
+    """Helper: two vertically-stacked grids on a dynamically-sized page.
 
-    *fill_fn_a(ax, ds_name, data)* and *fill_fn_b(ax, ds_name, data)* each
-    populate one cell.  *gaps_a/gaps_b = (hgap, wgap)* override cell gaps.
-    *spines_b=False* removes border spines on grid (b) panels.
+    Uses the same wider-and-shorter canvas as fig_themed_gene_stemness.
+    *ratio_b* scales panel (b) height relative to (a).  Use >1 for
+    equal-aspect panels like Poincaré disks.
     """
     S.apply_style()
     n = len(all_data)
-    nrows, ncols = 3, 4
+    nrows, ncols = _auto_grid(n)
 
-    fig = plt.figure(figsize=(S.FIG_WIDTH_IN, S.FIG_HEIGHT_IN))
+    # Match gene_stemness canvas: wider, capped height ratio
+    fig_w = max(S.FIG_WIDTH_IN, ncols * 1.75)
+    fig_h = max(S.FIG_HEIGHT_IN, 2 * nrows * 1.20 + 1.8)
+    fig_h = min(fig_h, fig_w * 1.15)
 
-    margin_l = 0.03
-    grid_w   = 0.93
-    grid_h   = 0.42
-    wgap_a   = gaps_a[1] if gaps_a else 0.04
-    hgap_a   = gaps_a[0] if gaps_a else 0.04
+    fig = plt.figure(figsize=(fig_w, fig_h))
+
+    margin_l = 0.02
+    grid_w   = 0.96
+    # Shrink the between-section gap so (a) and (b) read as a coherent
+    # pair, and enlarge the within-section row gap so each sub-subplot
+    # has breathing space for its dataset title.
+    sec_gap  = 0.035
+    base_h   = 0.41
+    grid_h_a = base_h
+    grid_h_b = base_h * ratio_b
+
+    wgap_a   = gaps_a[1] if gaps_a else 0.014
+    hgap_a   = gaps_a[0] if gaps_a else 0.035
     wgap_b   = gaps_b[1] if gaps_b else wgap_a
     hgap_b   = gaps_b[0] if gaps_b else hgap_a
 
-    top_a    = 0.93
-    bot_a    = top_a - grid_h
-    top_b    = bot_a - 0.05
-    bot_b    = top_b - grid_h
+    top_a    = 0.95
+    bot_a    = top_a - grid_h_a
+    top_b    = bot_a - sec_gap
+    bot_b    = top_b - grid_h_b
 
     axes_a = S.grid_of_axes(fig, nrows, ncols,
-                            [margin_l, bot_a, grid_w, grid_h],
+                            [margin_l, bot_a, grid_w, grid_h_a],
                             hgap=hgap_a, wgap=wgap_a)
     axes_b = S.grid_of_axes(fig, nrows, ncols,
-                            [margin_l, bot_b, grid_w, grid_h],
+                            [margin_l, bot_b, grid_w, grid_h_b],
                             hgap=hgap_b, wgap=wgap_b)
 
     for idx, (ds_name, data) in enumerate(all_data.items()):
@@ -1189,8 +1254,8 @@ def _themed_dual_grid(
         axes_a[r][c].set_visible(False)
         axes_b[r][c].set_visible(False)
 
-    _section_header(fig, margin_l, top_a + 0.02, "a", title_a)
-    _section_header(fig, margin_l, top_b + 0.02, "b", title_b)
+    _section_header(fig, margin_l, top_a + 0.020, "a", title_a)
+    _section_header(fig, margin_l, top_b + 0.020, "b", title_b)
 
     return fig
 
@@ -1200,32 +1265,31 @@ def _themed_single_grid(
     fill_fn,
     suptitle: str,
 ) -> plt.Figure:
-    """Helper: one 3×4 grid on a 17×21 cm page with larger fonts.
+    """Helper: one grid on a dynamically-sized page with larger fonts.
 
-    Panel labels are prepended to each subplot title so they never
-    overlap with the title text.
-
-    Vertical budget: 3 % suptitle | grid 88 % (hgap=7 % between rows
-    to accommodate panel titles) | 5 % bottom.
+    Grid dimensions are computed from len(all_data), capped at 8 columns.
+    Canvas ratio enforced >= 17:21.
     """
     S.apply_style()
     n = len(all_data)
-    nrows, ncols = 3, 4
+    nrows, ncols = _auto_grid(n)
 
-    fig = plt.figure(figsize=(S.FIG_WIDTH_IN, S.FIG_HEIGHT_IN))
+    fig_w = max(S.FIG_WIDTH_IN, ncols * 1.65)
+    fig_h = max(S.FIG_HEIGHT_IN, nrows * 1.25 + 1.5)
+    fig_w, fig_h = S.enforce_canvas_ratio(fig_w, fig_h)
+    fig = plt.figure(figsize=(fig_w, fig_h))
 
-    grid_rect = [0.03, 0.05, 0.93, 0.87]
+    grid_rect = [0.02, 0.04, 0.96, 0.89]
     axes = S.grid_of_axes(fig, nrows, ncols, grid_rect,
-                          hgap=0.07, wgap=0.05)
+                          hgap=0.015, wgap=0.012)
     panel_labels = "abcdefghijkl"
 
     for idx, (ds_name, data) in enumerate(all_data.items()):
         r, c = idx // ncols, idx % ncols
         ax = axes[r][c]
         fill_fn(ax, ds_name, data, idx)
-        # Bold panel label via add_panel_label; keep title text normal
         if idx < len(panel_labels):
-            S.add_panel_label(ax, panel_labels[idx], fontsize=S.FS_AXIS + 1)
+            S.add_panel_label(ax, panel_labels[idx], fontsize=S.FS_LABEL)
 
     for idx in range(n, nrows * ncols):
         axes[idx // ncols][idx % ncols].set_visible(False)
@@ -1258,7 +1322,7 @@ def fig_themed_embedding_poincare(
         umap = data["umap_coords"]
         ax.scatter(umap[:, 0], umap[:, 1], c=colors, s=2, alpha=0.6,
                    rasterized=True)
-        ax.set_title(_short_ds(ds_name), fontsize=S.FS_AXIS, pad=2)
+        ax.set_title(_short_ds(ds_name), fontsize=S.FS_TITLE, pad=2)
         ax.set_xticks([]); ax.set_yticks([])
 
     def _fill_poincare(ax, ds_name, data):
@@ -1277,15 +1341,17 @@ def fig_themed_embedding_poincare(
                    alpha=0.6, rasterized=True)
         ax.set_xlim(-1.15, 1.15); ax.set_ylim(-1.15, 1.15)
         ax.set_aspect("equal")
-        ax.set_title(_short_ds(ds_name), fontsize=S.FS_AXIS, pad=2)
+        ax.set_title(_short_ds(ds_name), fontsize=S.FS_TITLE, pad=2)
         ax.set_xticks([]); ax.set_yticks([])
 
     return _themed_dual_grid(
         all_data, _fill_umap, _fill_poincare,
         "UMAP Embedding by Cluster",
         "Poincaré Disk Projection by Cluster",
-        gaps_b=(0.02, 0.02),                 # tighter for equal-aspect disks
+        gaps_a=(0.035, 0.014),
+        gaps_b=(0.035, 0.014),
         spines_b=False,
+        ratio_b=1.10,
     )
 
 
@@ -1309,7 +1375,7 @@ def fig_themed_bottleneck(
                        rasterized=True)
         else:
             ax.hist(le[:, 0], bins=40, color="#0072B2", alpha=0.7)
-        ax.set_title(_short_ds(ds_name), fontsize=S.FS_AXIS, pad=2)
+        ax.set_title(_short_ds(ds_name), fontsize=S.FS_TITLE, pad=2)
         ax.set_xticks([]); ax.set_yticks([])
 
     def _fill_latent(ax, ds_name, data):
@@ -1317,20 +1383,18 @@ def fig_themed_bottleneck(
         q_z = data["q_z"]
         dim_var = data["dim_variance"]
         d = int(np.argsort(dim_var)[-1])     # most active dim
-        sc = ax.scatter(umap[:, 0], umap[:, 1], c=q_z[:, d],
-                        cmap=_NORM_CMAP, s=2, alpha=0.6, rasterized=True)
+        ax.scatter(umap[:, 0], umap[:, 1], c=q_z[:, d],
+                   cmap=_NORM_CMAP, s=2, alpha=0.6, rasterized=True)
         ax.set_title(f"{_short_ds(ds_name)} (z{d})",
-                     fontsize=S.FS_AXIS, pad=2)
+                     fontsize=S.FS_TITLE, pad=2)
         ax.set_xticks([]); ax.set_yticks([])
-        cb = plt.colorbar(sc, ax=ax, fraction=0.035, pad=0.01)
-        cb.ax.tick_params(labelsize=5)
 
     return _themed_dual_grid(
         all_data, _fill_ib, _fill_latent,
         "Information Bottleneck 2-D Scatter",
         "Most Active Latent Dimension on UMAP",
-        gaps_a=(0.02, 0.02),
-        gaps_b=(0.02, 0.06),
+        gaps_a=(0.035, 0.014),
+        gaps_b=(0.035, 0.014),
     )
 
 
@@ -1349,12 +1413,10 @@ def fig_themed_hyperbolic(
     def _fill_umap_norm(ax, ds_name, data):
         umap = data["umap_coords"]
         norms = data["lorentz_norms"]
-        sc = ax.scatter(umap[:, 0], umap[:, 1], c=norms, cmap=_NORM_CMAP,
-                        s=2, alpha=0.6, rasterized=True)
-        ax.set_title(_short_ds(ds_name), fontsize=S.FS_AXIS, pad=2)
+        ax.scatter(umap[:, 0], umap[:, 1], c=norms, cmap=_NORM_CMAP,
+                   s=2, alpha=0.6, rasterized=True)
+        ax.set_title(_short_ds(ds_name), fontsize=S.FS_TITLE, pad=2)
         ax.set_xticks([]); ax.set_yticks([])
-        cb = plt.colorbar(sc, ax=ax, fraction=0.035, pad=0.01)
-        cb.ax.tick_params(labelsize=5)
 
     def _fill_poincare_norm(ax, ds_name, data):
         poincare = data["poincare_coords"]
@@ -1365,21 +1427,21 @@ def fig_themed_hyperbolic(
         else:
             coords_2d = poincare
         ax.plot(np.cos(theta), np.sin(theta), "k-", lw=0.5, alpha=0.3)
-        sc = ax.scatter(coords_2d[:, 0], coords_2d[:, 1], c=norms,
-                        cmap=_NORM_CMAP, s=2, alpha=0.6, rasterized=True)
+        ax.scatter(coords_2d[:, 0], coords_2d[:, 1], c=norms,
+                   cmap=_NORM_CMAP, s=2, alpha=0.6, rasterized=True)
         ax.set_xlim(-1.15, 1.15); ax.set_ylim(-1.15, 1.15)
         ax.set_aspect("equal")
-        ax.set_title(_short_ds(ds_name), fontsize=S.FS_AXIS, pad=2)
+        ax.set_title(_short_ds(ds_name), fontsize=S.FS_TITLE, pad=2)
         ax.set_xticks([]); ax.set_yticks([])
-        cb = plt.colorbar(sc, ax=ax, fraction=0.035, pad=0.01)
-        cb.ax.tick_params(labelsize=5)
 
     return _themed_dual_grid(
         all_data, _fill_umap_norm, _fill_poincare_norm,
         "UMAP Coloured by Lorentz Norm",
         "Poincaré Disk Coloured by Lorentz Norm",
-        gaps_b=(0.02, 0.02),
+        gaps_a=(0.035, 0.014),
+        gaps_b=(0.035, 0.014),
         spines_b=False,
+        ratio_b=1.10,
     )
 
 
@@ -1414,181 +1476,87 @@ def _load_bioval_summaries(tables_dir: Path, ds_order) -> dict:
     return names, metrics
 
 
-def fig_themed_summary(
+def fig_themed_gene_stemness(
     all_data: "OrderedDict[str, dict]",
     tables_dir: Path,
 ) -> plt.Figure:
-    """Composed figure: (a) cross-dataset bar-chart summary,
-    (b) stemness projection 3×4 grid.
+    """Combined dual-grid: (a) gene expression + (b) stemness on UMAP.
 
-    Every text element (titles, x-tick labels, section headers) has an
-    explicit vertical allocation so nothing is ever masked.
-
-    Vertical budget (normalised, top → bottom):
-      0.97  section (a) title
-      0.83–0.95  bar row 1 axes  (h=0.12)
-      0.77–0.83  row 1 xtick zone  (0.06)
-      0.76  row gap
-      0.60–0.72  bar row 2 axes  (h=0.12)
-      0.54–0.60  row 2 xtick zone  (0.06)
-      0.50  section (b) title
-      0.06–0.47  stemness grid  (h=0.41)
-      0.06  bottom margin
+    Slightly wider and shorter than the standard 17×21 cm page to give
+    each subplot more horizontal room.
     """
     S.apply_style()
-    ds_order = list(all_data.keys())
-    ds_names, mets = _load_bioval_summaries(tables_dir, ds_order)
-    short = [_short_ds(n) for n in ds_names]
-    n_ds = len(ds_names)
+    n = len(all_data)
+    nrows, ncols = _auto_grid(n)
 
-    fig_w = S.FIG_WIDTH_IN
-    fig_h = S.FIG_HEIGHT_IN
+    # Wider canvas, relaxed height ratio (< 21:17)
+    fig_w = max(S.FIG_WIDTH_IN, ncols * 1.75)
+    fig_h = max(S.FIG_HEIGHT_IN, 2 * nrows * 1.20 + 1.8)
+    fig_h = min(fig_h, fig_w * 1.15)          # cap aspect ratio
+
     fig = plt.figure(figsize=(fig_w, fig_h))
 
-    # === Section (a): 2×4 bar chart grid ================================
-    _row1 = [
-        ("GAT Homophily",      mets["homophily"],      "#009E73", (0, 1.05)),
-        ("Lorentz Norm",       mets["lorentz_norm"],    "#0072B2", None),
-        ("IB Retention (MSE)", mets["ib_retention"],    "#D55E00", None),
-        ("Active Dims",        mets["active_dims"],     "#CC79A7", None),
-    ]
-    _row2 = [
-        ("Stemness Corr.",   mets["stemness_corr"],   "#0072B2", (-1, 1)),
-        ("Marker Recovery",  mets["marker_overlap"],  "#E69F00", (0, 1.05)),
-        ("Hierarchy Score",  mets["hierarchy_score"], "#CC79A7", None),
-        ("Recon. MSE",       mets["recon_mse"],       "#D55E00", None),
-    ]
+    margin_l = 0.02
+    grid_w   = 0.96
+    grid_h_a = 0.41                            # (a) gene expr — 2-row titles
+    grid_h_b = 0.41                            # (b) stemness  — 1-row titles
+    sec_gap  = 0.035                           # tighter a↔b gap
+    wgap     = 0.014
 
-    # Panel geometry — explicit zones for axes vs text
-    ml   = 0.07                              # y-label room
-    pw   = 0.195                             # bar panel width
-    pg   = 0.035                             # horizontal gap
-    ax_h = 0.12                              # bar axes height
+    top_a    = 0.95
+    bot_a    = top_a - grid_h_a
+    top_b    = bot_a - sec_gap
+    bot_b    = top_b - grid_h_b
 
-    row1_bot = 0.82                          # row 1 axes bottom
-    row2_bot = 0.64                          # row 2 axes bottom
+    # Increase intra-section row gap so every sub-subplot's dataset /
+    # gene title has breathing room.
+    axes_a = S.grid_of_axes(fig, nrows, ncols,
+                            [margin_l, bot_a, grid_w, grid_h_a],
+                            hgap=0.040, wgap=wgap)
+    axes_b = S.grid_of_axes(fig, nrows, ncols,
+                            [margin_l, bot_b, grid_w, grid_h_b],
+                            hgap=0.035, wgap=wgap)
 
-    def _make_bar_row(panels, axes_bot):
-        for ci, (title, vals, color, ylim) in enumerate(panels):
-            left = ml + ci * (pw + pg)
-            ax = fig.add_axes([left, axes_bot, pw, ax_h])
-            x = np.arange(n_ds)
-            ax.bar(x, vals, color=color, alpha=0.85, width=0.7)
-            ax.set_xticks(x)
-            ax.set_xticklabels(short, rotation=50, ha="right",
-                               fontsize=6)
-            ax.tick_params(axis="y", labelsize=6)
-            ax.tick_params(axis="x", pad=1)
-            ax.set_title(title, fontsize=S.FS_AXIS, pad=3)
-            if ylim:
-                ax.set_ylim(*ylim)
-
-    _make_bar_row(_row1, row1_bot)
-    _make_bar_row(_row2, row2_bot)
-
-    _section_header(fig, 0.03, 0.985, "a", "Cross-Dataset Summary")
-
-    # === Section (b): Stemness UMAP 3×4 grid ============================
-    nrows, ncols = 3, 4
-    stem_bot = 0.05
-    stem_h   = 0.48
-
-    axes_stem = S.grid_of_axes(fig, nrows, ncols,
-                               [0.03, stem_bot, 0.93, stem_h],
-                               hgap=0.03, wgap=0.05)
-
+    # ── (a) Top attributed gene expression ──
     for idx, (ds_name, data) in enumerate(all_data.items()):
         r, c = idx // ncols, idx % ncols
-        ax = axes_stem[r][c]
+        ax = axes_a[r][c]
+        umap = data["umap_coords"]
+        expr = data["top_gene_expr"]
+        names = data["top_gene_expr_names"]
+        if expr.shape[1] >= 1:
+            ax.scatter(umap[:, 0], umap[:, 1], c=expr[:, 0],
+                       cmap=_GENE_CMAP, s=3, alpha=0.5, rasterized=True)
+            gene_name = str(names[0])
+            if len(gene_name) > 12:
+                gene_name = gene_name[:10] + "…"
+            ax.set_title(f"{_short_ds(ds_name)}\n{gene_name}",
+                         fontsize=S.FS_TITLE, pad=2, linespacing=0.9)
+        else:
+            ax.set_title(_short_ds(ds_name), fontsize=S.FS_TITLE, pad=2)
+        ax.set_xticks([]); ax.set_yticks([])
+
+    # ── (b) Stemness projection on UMAP ──
+    for idx, (ds_name, data) in enumerate(all_data.items()):
+        r, c = idx // ncols, idx % ncols
+        ax = axes_b[r][c]
         umap = data["umap_coords"]
         stem = data["stemness_scores"]
-        sc = ax.scatter(umap[:, 0], umap[:, 1], c=stem, cmap="coolwarm",
-                        s=2, alpha=0.6, rasterized=True)
-        ax.set_title(_short_ds(ds_name), fontsize=S.FS_AXIS, pad=2)
+        ax.scatter(umap[:, 0], umap[:, 1], c=stem, cmap="coolwarm",
+                   s=3, alpha=0.5, rasterized=True)
+        ax.set_title(_short_ds(ds_name), fontsize=S.FS_TITLE, pad=2)
         ax.set_xticks([]); ax.set_yticks([])
-        cb = plt.colorbar(sc, ax=ax, fraction=0.035, pad=0.01)
-        cb.ax.tick_params(labelsize=5)
 
-    n = len(all_data)
+    # Hide empty cells
     for idx in range(n, nrows * ncols):
-        axes_stem[idx // ncols][idx % ncols].set_visible(False)
+        r, c = idx // ncols, idx % ncols
+        axes_a[r][c].set_visible(False)
+        axes_b[r][c].set_visible(False)
 
-    _section_header(fig, 0.03, stem_bot + stem_h + 0.02, "b",
+    _section_header(fig, margin_l, top_a + 0.020, "a",
+                    "Top Attributed Gene Expression")
+    _section_header(fig, margin_l, top_b + 0.020, "b",
                     "Stemness Projection on UMAP")
-
-    return fig
-
-
-# ------------------------------------------------------------------
-# Figure T5: Gene expression — top 3 genes composed (triple 3×4 grid)
-# ------------------------------------------------------------------
-
-def fig_themed_gene_expression(
-    all_data: "OrderedDict[str, dict]",
-) -> plt.Figure:
-    """Composed figure with three 3×4 grids: (a) top gene, (b) 2nd gene,
-    (c) 3rd gene.  Each cell = UMAP coloured by gene expression.
-
-    Vertical budget (normalised):
-      top 2 % | title_a 2 % | grid_a 28 % | gap+title_b 4 % |
-      grid_b 28 % | gap+title_c 4 % | grid_c 28 % | bottom 4 %
-    """
-    S.apply_style()
-    n = len(all_data)
-    nrows, ncols = 3, 4
-
-    fig = plt.figure(figsize=(S.FIG_WIDTH_IN, S.FIG_HEIGHT_IN))
-
-    margin_l = 0.03
-    grid_w   = 0.93
-    grid_h   = 0.28
-    wgap     = 0.04
-    hgap     = 0.03                          # tight within each grid
-
-    # Three stacked grids
-    top_a  = 0.94;  bot_a = top_a - grid_h  # 0.66
-    top_b  = bot_a - 0.04;  bot_b = top_b - grid_h  # 0.34
-    top_c  = bot_b - 0.04;  bot_c = top_c - grid_h  # 0.02
-
-    axes_a = S.grid_of_axes(fig, nrows, ncols,
-                            [margin_l, bot_a, grid_w, grid_h],
-                            hgap=hgap, wgap=wgap)
-    axes_b = S.grid_of_axes(fig, nrows, ncols,
-                            [margin_l, bot_b, grid_w, grid_h],
-                            hgap=hgap, wgap=wgap)
-    axes_c = S.grid_of_axes(fig, nrows, ncols,
-                            [margin_l, bot_c, grid_w, grid_h],
-                            hgap=hgap, wgap=wgap)
-
-    ordinals = ["Top", "2nd", "3rd"]
-
-    for rank, (axes_g, top_g) in enumerate(
-            [(axes_a, top_a), (axes_b, top_b), (axes_c, top_c)]):
-        for idx, (ds_name, data) in enumerate(all_data.items()):
-            r, c = idx // ncols, idx % ncols
-            ax = axes_g[r][c]
-            umap = data["umap_coords"]
-            expr = data["top_gene_expr"]
-            names = data["top_gene_expr_names"]
-            if rank >= expr.shape[1]:
-                ax.set_visible(False)
-                continue
-            sc = ax.scatter(umap[:, 0], umap[:, 1], c=expr[:, rank],
-                            cmap=_GENE_CMAP, s=2, alpha=0.6, rasterized=True)
-            gene_name = str(names[rank])
-            ax.set_title(f"{_short_ds(ds_name)}: {gene_name}",
-                         fontsize=S.FS_AXIS, pad=2)
-            ax.set_xticks([]); ax.set_yticks([])
-            cb = plt.colorbar(sc, ax=ax, fraction=0.035, pad=0.01)
-            cb.ax.tick_params(labelsize=4)
-
-        for idx in range(n, nrows * ncols):
-            axes_g[idx // ncols][idx % ncols].set_visible(False)
-
-        label = chr(ord("a") + rank)
-        _section_header(fig, margin_l, top_g + 0.015, label,
-                        f"{ordinals[rank]} Attributed Gene",
-                        fontsize=S.FS_AXIS)
 
     return fig
 
@@ -1635,6 +1603,8 @@ def generate_themed_figures(
         "fig_themed_stemness", "fig_themed_latent_dim",
         "fig_biovalidation_summary", "fig_interpretation_summary",
         "fig_themed_gene1", "fig_themed_gene2", "fig_themed_gene3",
+        "fig_themed_genes", "fig_themed_gene_expr",
+        "fig_themed_summary",
     ]
     for p in list(output_dir.glob("*")):
         if p.is_dir():
@@ -1663,18 +1633,12 @@ def generate_themed_figures(
         fig, output_dir / "fig_themed_hyperbolic.png"))
     plt.close(fig)
 
-    # T4: Summary bars + Stemness grid (composed)
+    # T4: Gene expression + stemness combined (dual grid)
     if tables_dir.exists():
-        fig = fig_themed_summary(all_data, tables_dir)
+        fig = fig_themed_gene_stemness(all_data, tables_dir)
         saved.extend(S.save_figure(
-            fig, output_dir / "fig_themed_summary.png"))
+            fig, output_dir / "fig_themed_gene_stemness.png"))
         plt.close(fig)
-
-    # T5: Gene expression (top 3 genes merged into one figure)
-    fig = fig_themed_gene_expression(all_data)
-    saved.extend(S.save_figure(
-        fig, output_dir / "fig_themed_genes.png"))
-    plt.close(fig)
 
     _themed_logger.info("Themed figures: saved %d files to %s",
                         len(saved), output_dir)
