@@ -11,10 +11,28 @@ All figure scripts import from here to ensure visual consistency.
 from __future__ import annotations
 
 from collections import OrderedDict
+from pathlib import Path
 from typing import Dict, List
 
 import matplotlib
+import matplotlib.font_manager as _fm
 import matplotlib.pyplot as plt
+
+# ── Arial font registration (bundled in gahib/viz/fonts/) ────────────────
+_FONT_DIR = Path(__file__).resolve().parent / "fonts"
+_LAB_DIR = Path.home() / "LAB"
+# Arial Italic / Arial Bold Italic from ~/LAB are known to have corrupt
+# glyf tables on some systems; only register Regular + Bold.
+_ARIAL_SAFE = {"Arial.ttf", "Arial Bold.ttf"}
+for _d in (_FONT_DIR, _LAB_DIR):
+    if _d.exists():
+        for _ttf in _d.glob("Arial*.ttf"):
+            if _ttf.name not in _ARIAL_SAFE:
+                continue
+            try:
+                _fm.fontManager.addfont(str(_ttf))
+            except Exception:
+                pass
 
 # ---------------------------------------------------------------------------
 # Figure geometry (17 cm x 21 cm, matching MoCoO / IEEE J-BHI column width)
@@ -24,8 +42,9 @@ FIG_HEIGHT_CM = 21.0
 FIG_WIDTH_IN = FIG_WIDTH_CM / 2.54
 FIG_HEIGHT_IN = FIG_HEIGHT_CM / 2.54
 DPI = 300
+DPI_PNG = 150  # lower DPI for PNG to keep file size < 20 MB
 
-SAVEFIG_KW = dict(dpi=DPI, bbox_inches="tight", pad_inches=0.05)
+SAVEFIG_KW = dict(dpi=DPI, bbox_inches=None, pad_inches=0.0)
 
 # Absolute-geometry layout rects [left, bottom, width, height]
 RECT_BOXPLOT_ROW = [0.05, 0.22, 0.93, 0.68]   # bottom margin for rotated x-labels
@@ -45,7 +64,7 @@ ACCENT_BEST = "crimson"
 # ---------------------------------------------------------------------------
 # Font sizes (calibrated for 17 x 21 cm canvas)
 # ---------------------------------------------------------------------------
-FS_LABEL = 16
+FS_LABEL = 20
 FS_TITLE = 13
 FS_AXIS = 11
 FS_TICK = 10
@@ -371,6 +390,16 @@ def grid_of_axes(fig, nrows, ncols, rect, hgap=0.04, wgap=0.04,
     return axes
 
 
+def enforce_canvas_ratio(fig_w, fig_h, min_ratio=21.0 / 17.0):
+    """Ensure fig_h / fig_w >= min_ratio (default 17:21 page).
+
+    Returns adjusted (fig_w, fig_h).
+    """
+    if fig_h / fig_w < min_ratio:
+        fig_h = fig_w * min_ratio
+    return fig_w, fig_h
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -387,6 +416,9 @@ def apply_style() -> None:
         "savefig.edgecolor": "none",
         "savefig.transparent": False,
         "font.family": "sans-serif",
+        "font.sans-serif": ["Arial", "DejaVu Sans", "Liberation Sans"],
+        "pdf.fonttype": 42,
+        "ps.fonttype": 42,
         "font.size": FS_AXIS,
         "font.weight": "normal",
         "font.style": "normal",
@@ -425,15 +457,22 @@ def apply_style() -> None:
         "mathtext.default": "regular",
     }
 
+    # Arial / Liberation Sans (metric-compatible) font setup
+    params["font.sans-serif"] = [
+        "Arial", "Liberation Sans", "Nimbus Sans L", "DejaVu Sans"
+    ]
+    params["pdf.fonttype"] = 42   # TrueType embedded, editable in Illustrator
+    params["ps.fonttype"]  = 42
+
     try:
         import matplotlib.font_manager as fm
         available = {f.name for f in fm.fontManager.ttflist}
         preferred = [n for n in ("Arial", "Liberation Sans", "Nimbus Sans")
                      if n in available]
         if preferred:
-            params["font.sans-serif"] = preferred + list(
-                matplotlib.rcParams.get("font.sans-serif", [])
-            )
+            params["font.sans-serif"] = preferred + [
+                "DejaVu Sans"
+            ]
     except Exception:
         pass
 
@@ -441,28 +480,35 @@ def apply_style() -> None:
 
 
 def save_figure(fig, path, **extra_kw):
-    """Save figure as both PNG and PDF for publication."""
+    """Save figure as both PNG and PDF for publication.
+
+    Uses fully manual geometry — no bbox_inches, no pad_inches.
+    """
     from pathlib import Path as _Path
 
     p = _Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
-    kw = dict(SAVEFIG_KW, **extra_kw)
-    fig.savefig(str(p), **kw)
+
+    # PNG: lower DPI to keep file size manageable
+    png_path = p.with_suffix(".png")
+    fig.savefig(str(png_path), dpi=DPI_PNG)
+
+    # PDF: no dpi argument (vector)
     pdf_path = p.with_suffix(".pdf")
-    pdf_kw = dict(kw)
-    pdf_kw.pop("dpi", None)
-    fig.savefig(str(pdf_path), **pdf_kw)
-    return str(p), str(pdf_path)
+    fig.savefig(str(pdf_path))
+
+    return str(png_path), str(pdf_path)
 
 
-def add_panel_label(ax, label, x=-0.08, y=1.06, fontsize=None):
-    """Place a bold panel label (a), (b), ... outside ax."""
+def add_panel_label(ax, label, x=-0.08, y=1.06, fontsize=None,
+                    fontweight="bold"):
+    """Place a panel label (a), (b), ... outside ax. Bold by convention."""
     import matplotlib.patheffects as pe
     fs = fontsize or FS_LABEL
     ax.text(
         x, y, f"({label})",
         transform=ax.transAxes,
-        fontsize=fs, fontweight="bold", va="bottom", ha="left",
+        fontsize=fs, fontweight=fontweight, va="bottom", ha="left",
         path_effects=[pe.withStroke(linewidth=2.5, foreground="white")],
     )
 
@@ -507,3 +553,76 @@ def metric_title(abbrev: str) -> str:
         arrow = " \u2191" if METRIC_DIRECTION[abbrev] else " \u2193"
     display = METRIC_DISPLAY.get(abbrev, abbrev)
     return f"{display}{arrow}"
+
+
+# ---------------------------------------------------------------------------
+# Layout / primitives style constants
+# (requires primitives.py; imported lazily to avoid circular import)
+# ---------------------------------------------------------------------------
+
+def _make_text_style(**kw):
+    """Return a TextStyle without importing at module level (avoids circulars)."""
+    from .primitives import TextStyle
+    return TextStyle(**kw)
+
+
+def _make_box_style(**kw):
+    from .primitives import BoxStyle
+    return BoxStyle(**kw)
+
+
+# ── Pipeline box colours keyed by stage name ──────────────────────────────
+PIPELINE_COLORS: Dict[str, str] = {
+    "input":    "#AED6F1",   # scRNA-seq light blue
+    "preproc":  "#BDC3C7",   # kNN / preprocessing grey
+    "encoder":  "#1A9E8F",   # GAT encoder teal
+    "ib":       "#7D3C98",   # IB compression purple
+    "lorentz":  "#4A235A",   # Lorentz loss indigo
+    "decoder":  "#E67E22",   # NB decoder amber
+    "latent":   "#0E6655",   # Latent embedding dark teal
+}
+
+# ── Architecture column colours (header, body) ────────────────────────────
+ARCH_COLORS: Dict[str, tuple] = {
+    "INPUT":                  ("#a8cef0", "#daeeff"),
+    "PREPROCESSING":          ("#b0b0b0", "#ebebeb"),
+    "GAT ENCODER":            ("#35978f", "#cce9e6"),
+    "INFORMATION BOTTLENECK": ("#756bb1", "#e3dff2"),
+    "DECODER":                ("#fdae61", "#feeacb"),
+}
+
+# ── Text styles ────────────────────────────────────────────────────────────
+# (Instantiated on first access via property-like callables)
+
+def TITLE_TEXT_STYLE() -> "TextStyle":  # type: ignore[misc]
+    return _make_text_style(size=16, color="#1B2A6B", weight="bold")
+
+
+def BODY_TEXT_STYLE() -> "TextStyle":  # type: ignore[misc]
+    return _make_text_style(size=8.5, color="#222222")
+
+
+def CAPTION_TEXT_STYLE() -> "TextStyle":  # type: ignore[misc]
+    return _make_text_style(size=7.0, color="#444444", italic=True)
+
+
+def HEADER_TEXT_STYLE() -> "TextStyle":  # type: ignore[misc]
+    return _make_text_style(size=9.5, color="#111111", weight="bold")
+
+
+def SMALL_TEXT_STYLE() -> "TextStyle":  # type: ignore[misc]
+    return _make_text_style(size=7.5, color="#333333")
+
+
+def WHITE_TEXT_STYLE(size: float = 8.5) -> "TextStyle":  # type: ignore[misc]
+    return _make_text_style(size=size, color="white", weight="bold")
+
+
+# ── Box styles ─────────────────────────────────────────────────────────────
+
+def DEFAULT_BOX_STYLE() -> "BoxStyle":  # type: ignore[misc]
+    return _make_box_style(face="#ffffff", edge="#333333", lw=0.8)
+
+
+def PANEL_BOX_STYLE() -> "BoxStyle":  # type: ignore[misc]
+    return _make_box_style(face="#EEF2F5", edge="#9FB3C8", lw=1.2, rounding=0.015)

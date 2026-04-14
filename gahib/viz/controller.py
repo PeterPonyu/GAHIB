@@ -408,7 +408,7 @@ class VisualizationController:
         )
 
         fig.text(0.5, S.RECT_TITLE_Y, title,
-                 fontsize=S.FS_TITLE + 2, fontweight="bold",
+                 fontsize=S.FS_TITLE + 2, fontweight="normal",
                  ha="center", va="bottom")
         return fig
 
@@ -492,14 +492,15 @@ class VisualizationController:
                                                 sig_pairs, plot_data)
 
         if panel_label and axes:
-            S.add_panel_label(axes[0], panel_label, x=-0.12, y=1.06)
+            S.add_panel_label(axes[0], panel_label, x=-0.12, y=1.06,
+                              fontsize=S.FS_LABEL)
 
     def _add_significance_brackets(self, ax, metric, methods, sig_pairs, data):
         """Add significance brackets between pairs."""
         ymin, ymax = ax.get_ylim()
         y_range = ymax - ymin
         bracket_y = ymax + y_range * 0.08
-        step = y_range * 0.10 if y_range > 0 else 0.05
+        step = y_range * 0.13 if y_range > 0 else 0.07
 
         valid_pairs = []
         for ma, mb in sig_pairs:
@@ -523,10 +524,15 @@ class VisualizationController:
         for x1, x2, stars in valid_pairs:
             y = bracket_y + bracket_count * step
 
-            ax.plot([x1, x1, x2, x2], [y, y + step * 0.3, y + step * 0.3, y],
-                    lw=1.0, c="black")
-            ax.text((x1 + x2) / 2, y + step * 0.35, stars,
-                    ha="center", va="bottom", fontsize=S.FS_SMALL,
+            arm_h = step * 0.22
+            ax.plot([x1, x1, x2, x2],
+                    [y, y + arm_h, y + arm_h, y],
+                    lw=1.2, c="black")
+            # Place stars flush with the bracket top — slightly inside so
+            # the marker reads as attached to the bar, not floating above.
+            ax.text((x1 + x2) / 2, y + arm_h - step * 0.02, stars,
+                    ha="center", va="bottom",
+                    fontsize=S.FS_TITLE + 2,
                     fontweight="normal")
             bracket_count += 1
 
@@ -600,11 +606,11 @@ class VisualizationController:
         # that zone: center at TITLE_IN * 0.40 from top ≥ 0.30 in above
         # axes_top.  TITLE_IN = 0.60 in → center at 0.36 in → clear.
         HEADER_IN = 0.44    # overall figure title zone
-        TITLE_IN  = 0.62    # per-row group title zone (above axes)
-        AXES_IN   = 2.66    # axes plot area height
-        XTICK_IN  = 0.54    # below-axes space for rotated x-tick labels
-        GAP_IN    = 0.22    # gap between consecutive row slots
-        FOOTER_IN = 0.07    # bottom breathing room
+        TITLE_IN  = 0.68    # per-row group title zone (above axes)
+        AXES_IN   = 2.80    # axes plot area height
+        XTICK_IN  = 0.75    # below-axes space for rotated x-tick labels
+        GAP_IN    = 0.40    # gap between consecutive row slots
+        FOOTER_IN = 0.20    # bottom breathing room
 
         slot_in = TITLE_IN + AXES_IN + XTICK_IN
         fig_h   = (HEADER_IN + FOOTER_IN
@@ -735,7 +741,7 @@ class VisualizationController:
 
                 fmt = S.FMT_LARGE if abs(val) > 10 else S.FMT_SCORE_SHORT
                 ax.text(j, i, f"{val:{fmt}}", ha="center", va="center",
-                        fontsize=S.FS_SMALL, color=color, fontweight="bold")
+                        fontsize=S.FS_SMALL, color=color, fontweight="normal")
 
         # Labels
         display_labels = [S.METRIC_DISPLAY.get(m, m) for m in proposed]
@@ -748,7 +754,7 @@ class VisualizationController:
             fontsize=S.FS_TICK,
         )
         ax.set_title("GAHIB Benchmark Summary", fontsize=S.FS_TITLE + 1,
-                      fontweight="bold", pad=10)
+                      fontweight="normal", pad=10)
 
         cbar_rect = [S.RECT_HEATMAP[0] + S.RECT_HEATMAP[2] + 0.02,
                      S.RECT_HEATMAP[1], 0.025, S.RECT_HEATMAP[3]]
