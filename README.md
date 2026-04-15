@@ -1,3 +1,9 @@
+<div align="center">
+  <a href="https://peterponyu.github.io/">
+    <img src="https://peterponyu.github.io/assets/badges/GAHIB.svg" width="64" alt="ZF Lab · GAHIB">
+  </a>
+</div>
+
 # GAHIB
 
 A PyTorch implementation of a graph-attention variational autoencoder with
