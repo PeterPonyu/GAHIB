@@ -91,6 +91,7 @@ paper_blind/
 cover_letter/
 highlights/
 GAHIB_submission/
+GAHIB_submission_authored/
 *.pdf
 *.bib
 FIGURE_INDEX.md
