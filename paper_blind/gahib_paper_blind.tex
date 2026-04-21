@@ -201,18 +201,22 @@ each cell. Widely adopted pipelines such as
 Scanpy~\cite{wolf2018scanpy} and Leiden
 clustering~\cite{traag2019leiden} inherit the strengths and weaknesses
 of whichever embedding is fed into them, so the choice of latent
-space is consequential far beyond the embedding step itself.
+space is consequential far beyond the embedding step
+itself~\cite{luecken2019bestpractices,lahnemann2020grandchallenges}.
 
 Unlike bulk expression measurements, scRNA-seq matrices are sparse,
-overdispersed, and structurally heterogeneous: discrete cell identities
-coexist with continuous transitional states, branching developmental
-programmes, and local neighbourhood effects induced by shared lineage or
-microenvironment.
+overdispersed, and well approximated by negative-binomial count
+models~\cite{hafemeister2019sctransform,svensson2020droplet}.
+They are also structurally heterogeneous: discrete cell identities
+coexist with continuous transitional states and branching developmental
+programmes that standard clustering
+alone cannot resolve~\cite{trapnell2014monocle,haghverdi2016dpt}.
 An embedding useful in practice must therefore satisfy several
 requirements simultaneously.
-It must denoise counts, preserve local neighbour relations for clustering
-and graph construction, and retain enough global organisation for
-trajectory analysis and biological interpretation.
+It must denoise counts, preserve local neighbour relations for
+clustering and graph construction, and retain enough global
+organisation for reliable trajectory
+inference~\cite{saelens2019trajectory} and biological interpretation.
 Methods that optimise only one of these goals often produce either clean
 clusters with poor manifold structure or smooth manifolds with weak
 cell-state separation.
@@ -535,7 +539,9 @@ between $L_k$ and every gene across all cells, rank genes by
 $|\rho|$, and take the top 100.
 We query these gene lists against a curated built-in panel of
 hallmark-style gene sets derived from MSigDB Biological Process
-categories via a hypergeometric test, applying
+categories~\cite{ashburner2000go} via a hypergeometric test in the
+spirit of gene-set enrichment
+analysis~\cite{subramanian2005gsea}, applying
 Benjamini--Hochberg correction at adjusted $p<0.05$.
 For the cross-dataset summary we take the minimum adjusted $p$-value
 per term across datasets and report the top three most significant
@@ -1832,6 +1838,11 @@ The origin of hyperbolic space is the unique point of minimum norm; in
 tree embeddings~\cite{nickel2017poincare}---and in their single-cell
 analogue Poincar\'e maps~\cite{klimovskaia2020poincare}---the root of
 the hierarchy maps to the origin while leaves map to high-norm positions.
+Earlier hyperbolic variational
+autoencoders~\cite{mathieu2019poincarevae,nagano2019wrappednormal}
+established the reparameterisation machinery on the Poincar\'e disk and
+the Lorentz model, but did not couple this geometry to graph-based
+encoding or to an information bottleneck.
 GAHIB's geodesic loss encourages the high-dimensional latent code $\bz$
 and its 2D projection $\bz'$ to occupy consistent positions on the
 hyperboloid, effectively regularising the encoder to produce representations
@@ -1954,7 +1965,9 @@ once and cached.
 Our evaluation caps at 3{,}000 cells per dataset to ensure fair
 comparison across all methods.
 Scaling to atlas-level data ($>$100K cells) would require efficient
-graph-sampling strategies (e.g., GraphSAINT, ClusterGCN) and
+graph-sampling strategies such as
+GraphSAINT~\cite{zeng2020graphsaint} or
+Cluster-GCN~\cite{chiang2019clustergcn} combined with
 mini-batch graph construction, which we leave to future work.
 The subgraph sampling strategy we already employ (10 subgraphs of 512
 nodes per epoch) provides a natural foundation for such extensions.
@@ -2291,6 +2304,100 @@ T.~Tian, J.~Wan, Q.~Song, Z.~Wei, Clustering single-cell {RNA-seq} data with a
   191--198.
 \newblock \href {https://doi.org/10.1038/s42256-019-0037-0}
   {\path{doi:10.1038/s42256-019-0037-0}}.
+
+\bibitem{luecken2019bestpractices}
+M.~D. Luecken, F.~J. Theis, Current best practices in single-cell
+  {RNA-seq} analysis: a tutorial, Molecular Systems Biology 15~(6) (2019)
+  e8746.
+\newblock \href {https://doi.org/10.15252/msb.20188746}
+  {\path{doi:10.15252/msb.20188746}}.
+
+\bibitem{lahnemann2020grandchallenges}
+D.~L{\"a}hnemann, J.~K{\"o}ster, E.~Szczurek, et~al.,
+  Eleven grand challenges in single-cell data science,
+  Genome Biology 21 (2020) 31.
+\newblock \href {https://doi.org/10.1186/s13059-020-1926-6}
+  {\path{doi:10.1186/s13059-020-1926-6}}.
+
+\bibitem{hafemeister2019sctransform}
+C.~Hafemeister, R.~Satija, Normalization and variance stabilization of
+  single-cell {RNA-seq} data using regularized negative binomial regression,
+  Genome Biology 20 (2019) 296.
+\newblock \href {https://doi.org/10.1186/s13059-019-1874-1}
+  {\path{doi:10.1186/s13059-019-1874-1}}.
+
+\bibitem{svensson2020droplet}
+V.~Svensson, Droplet scRNA-seq is not zero-inflated,
+  Nature Biotechnology 38~(2) (2020) 147--150.
+\newblock \href {https://doi.org/10.1038/s41587-019-0379-5}
+  {\path{doi:10.1038/s41587-019-0379-5}}.
+
+\bibitem{trapnell2014monocle}
+C.~Trapnell, D.~Cacchiarelli, J.~Grimsby, P.~Pokharel, S.~Li, M.~Morse,
+  N.~J. Lennon, K.~J. Livak, T.~S. Mikkelsen, J.~L. Rinn,
+  The dynamics and regulators of cell fate decisions are revealed by
+  pseudotemporal ordering of single cells,
+  Nature Biotechnology 32~(4) (2014) 381--386.
+\newblock \href {https://doi.org/10.1038/nbt.2859}
+  {\path{doi:10.1038/nbt.2859}}.
+
+\bibitem{haghverdi2016dpt}
+L.~Haghverdi, M.~B{\"u}ttner, F.~A. Wolf, F.~Buettner, F.~J. Theis,
+  Diffusion pseudotime robustly reconstructs lineage branching,
+  Nature Methods 13~(10) (2016) 845--848.
+\newblock \href {https://doi.org/10.1038/nmeth.3971}
+  {\path{doi:10.1038/nmeth.3971}}.
+
+\bibitem{saelens2019trajectory}
+W.~Saelens, R.~Cannoodt, H.~Todorov, Y.~Saeys,
+  A comparison of single-cell trajectory inference methods,
+  Nature Biotechnology 37~(5) (2019) 547--554.
+\newblock \href {https://doi.org/10.1038/s41587-019-0071-9}
+  {\path{doi:10.1038/s41587-019-0071-9}}.
+
+\bibitem{ashburner2000go}
+M.~Ashburner, C.~A. Ball, J.~A. Blake, D.~Botstein, H.~Butler, et~al.,
+  Gene ontology: tool for the unification of biology,
+  Nature Genetics 25~(1) (2000) 25--29.
+\newblock \href {https://doi.org/10.1038/75556}
+  {\path{doi:10.1038/75556}}.
+
+\bibitem{subramanian2005gsea}
+A.~Subramanian, P.~Tamayo, V.~K. Mootha, S.~Mukherjee, B.~L. Ebert,
+  M.~A. Gillette, A.~Paulovich, S.~L. Pomeroy, T.~R. Golub, E.~S. Lander,
+  J.~P. Mesirov,
+  Gene set enrichment analysis: a knowledge-based approach for
+  interpreting genome-wide expression profiles,
+  Proceedings of the National Academy of Sciences 102~(43) (2005)
+  15545--15550.
+\newblock \href {https://doi.org/10.1073/pnas.0506580102}
+  {\path{doi:10.1073/pnas.0506580102}}.
+
+\bibitem{mathieu2019poincarevae}
+E.~Mathieu, C.~Le~Lan, C.~J. Maddison, R.~Tomioka, Y.~W. Teh,
+  Continuous hierarchical representations with {Poincar{\'e}}
+  variational auto-encoders, in: Advances in Neural Information
+  Processing Systems 32, 2019, pp. 12565--12576.
+
+\bibitem{nagano2019wrappednormal}
+Y.~Nagano, S.~Yamaguchi, Y.~Fujita, M.~Koyama,
+  A wrapped normal distribution on hyperbolic space for gradient-based
+  learning, in: Proceedings of the 36th International Conference on
+  Machine Learning, Vol.~97, 2019, pp. 4693--4702.
+
+\bibitem{zeng2020graphsaint}
+H.~Zeng, H.~Zhou, A.~Srivastava, R.~Kannan, V.~Prasanna,
+  {GraphSAINT}: Graph sampling based inductive learning method, in:
+  International Conference on Learning Representations, 2020.
+
+\bibitem{chiang2019clustergcn}
+W.-L. Chiang, X.~Liu, S.~Si, Y.~Li, S.~Bengio, C.-J. Hsieh,
+  {Cluster-GCN}: An efficient algorithm for training deep and large
+  graph convolutional networks, in: Proceedings of the 25th ACM SIGKDD
+  International Conference on Knowledge Discovery \& Data Mining, 2019,
+  pp. 257--266.
+\newblock \href {https://doi.org/10.1145/3292500.3330925}
+  {\path{doi:10.1145/3292500.3330925}}.
 
 \end{thebibliography}
 
