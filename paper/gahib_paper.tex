@@ -169,20 +169,16 @@ and the graph encoder sharpens both geometric terms through
 neighbourhood-aware representations.
 Across 53 scRNA-seq datasets, 11 studies, and 20 metrics, GAHIB
 matches or exceeds deep-learning, classical, geometric-VAE, and
-disentanglement baselines on clustering (NMI, ARI, ASW), embedding
-quality (DRE-UMAP, DRE-tSNE), and latent-space evaluation (LSE)
-metrics, with statistically significant gains over the majority of
-pairwise comparisons under paired Wilcoxon signed-rank tests
-(Benjamini--Hochberg corrected).
-A component ablation confirms that each architectural term
-contributes complementary signal.
-Multi-seed runs show ${<}$3\% standard deviation across metrics, and
-hyperparameter sensitivity is bounded within $\pm$5\% across four
-coefficients.
-At fixed 200 epochs, GAHIB trains in 22.0$\pm$3.2\,s per dataset
-(1.4$\times$ the cost of a plain VAE at 15.6\,s); because the
-training loop is paced by a fixed subgraph schedule, per-epoch cost
-varies by less than 4\% across mini-batch sizes from 32 to 512.
+disentanglement baselines on clustering, embedding-quality, and
+latent-space metrics, with statistically significant gains over
+the majority of pairwise comparisons (paired Wilcoxon signed-rank,
+Benjamini--Hochberg corrected). A component ablation confirms
+that each architectural term contributes complementary signal,
+and the learned latent space recovers a biologically coherent
+radial ordering of cell states on datasets with lineage annotation.
+The method is reproducible across random seeds, robust across its
+four key hyperparameters, and trains in tens of seconds per dataset
+on a single mid-range GPU.
 \end{abstract}
 
 \begin{keyword}
