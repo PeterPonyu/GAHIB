@@ -1,6 +1,6 @@
 % ============================================================================
-% GAHIB: Graph Attention VAE with Hyperbolic Information Bottleneck
-%        for Single-Cell Omics Latent Space Learning
+% GAHIB: Graph Attention VAE with a Hyperbolic Information Bottleneck
+%        for Biologically Structured Single-Cell Representations
 %
 % Target: Elsevier journal (elsarticle single-column)
 % ============================================================================
@@ -114,8 +114,9 @@
 
 \begin{frontmatter}
 
-\title{Graph Attention VAE with a Hyperbolic Information Bottleneck\\
-for Single-Cell Latent Representation Learning}
+\title{GAHIB: Graph Attention VAE with a Hyperbolic\\
+Information Bottleneck for Biologically Structured\\
+Single-Cell Representations}
 
 % ─────────────────────────────────────────────────────────────────────────
 % Author names, affiliations, emails, and ORCIDs have been removed for
@@ -1739,7 +1740,7 @@ showing the largest influence.}
 \section{Discussion}\label{sec:discussion}
 % ============================================================================
 
-\subsection{GAHIB's Main Practical Gain Is Balance}
+\subsection{A Balanced Embedding, Not a Specialist}
 
 GAHIB's practical value is balance: it is the only method that remains
 strong across clustering, geometry-preservation, and latent-structure
@@ -1763,7 +1764,7 @@ neighbourhood fidelity and branching organisation matter, GAHIB is best
 used as a balanced general-purpose embedding rather than as a
 specialised hyperbolic model.
 
-\subsection{The GAT Encoder as the Critical Component}
+\subsection{The GAT Encoder Drives the Clustering Gain}
 
 Across all seven experimental studies, the GAT encoder consistently emerges
 as the single most impactful architectural component.
@@ -1860,7 +1861,7 @@ coherent radial ordering of cell states and yields a continuous
 latent coordinate that correlates with canonical stemness markers on
 annotated datasets, as a by-product of the variational objective.
 
-\subsection{Why Disentanglement Regularisation Hurts Single-Cell Clustering}
+\subsection{Disentanglement Regularisation Hurts Single-Cell Clustering}
 
 In the disentanglement benchmark (\cref{sec:benchmark_disent}), every
 regulariser tested (\(\beta\)-VAE, DIP-VAE, TC-VAE, InfoVAE)
