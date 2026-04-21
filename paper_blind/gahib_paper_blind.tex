@@ -93,12 +93,18 @@
 \newcommand{\sigC}{$^{*}$}       % p < 0.05
 \newcommand{\ns}{$^{\text{ns}}$} % not significant
 
+% Empty pdfauthor/pdftitle prevents any leakage of OS username or
+% draft title into the PDF metadata for double-anonymous review.
 \hypersetup{
   colorlinks=true,
   linkcolor=blue!60!black,
   citecolor=blue!60!black,
   urlcolor=blue!60!black,
   hypertexnames=false,
+  pdfauthor={},
+  pdftitle={},
+  pdfsubject={},
+  pdfkeywords={},
 }
 
 \journal{Journal of King Saud University -- Computer and Information Sciences}
@@ -272,10 +278,10 @@ manifold coordinate~$\bz'$ required to define a stable target for the
 hyperbolic loss, while the GAT encoder strengthens both geometric terms
 through neighbourhood-aware representations.
 
-We validate GAHIB through 11 complementary experimental studies
-organised into three groups.
-7 \emph{comparative benchmarks} quantify GAHIB's performance relative to
-prior art:
+We validate GAHIB through 11 experimental studies --- 7 comparative
+benchmarks and 4 robustness-and-efficiency studies --- complemented by
+a biological-interpretation analysis. The 7 \emph{comparative
+benchmarks} quantify GAHIB's performance relative to prior art:
 \begin{enumerate}[leftmargin=*,itemsep=0pt,label=(\roman*)]
 \item Component ablation (5~variants, \cref{sec:ablation});
 \item Deep learning benchmark (8~methods, \cref{sec:benchmark_dl});
@@ -285,12 +291,12 @@ prior art:
 \item Encoder architecture comparison (3~types, \cref{sec:encoder});
 \item Graph convolution sweep (6~operators, \cref{sec:gconv}).
 \end{enumerate}
-A \emph{biological interpretation} study
+A separate \emph{biological-interpretation} analysis
 (\cref{sec:interpretation}) asks whether the learned latent space
-captures aspects of developmental hierarchy, gene programs,
-cell-type homophily, and tissue-specific Gene Ontology Biological
-Process enrichment (\cref{sec:go}) on a representative subset of
-datasets for which cell-type or lineage annotations are available.
+captures developmental hierarchy, gene programs, cell-type homophily,
+and tissue-specific Gene Ontology Biological Process enrichment
+(\cref{sec:go}) on a representative subset of datasets for which
+cell-type or lineage annotations are available.
 Four \emph{robustness and efficiency} studies
 (\cref{sec:robustness}) further quantify latent-dimension stability
 (\cref{sec:latdim}), multi-seed reproducibility (\cref{sec:seeds}),
@@ -2017,14 +2023,12 @@ models.
 % ============================================================================
 
 \paragraph{Code.}
-All source code, trained models, experiment scripts, and figure
-generators will be released under an open-source licence upon
-acceptance.
-The repository URL is \emph{withheld for double-anonymous review} and
-will be disclosed in the camera-ready version.
-The repository includes the 11 experiment runners, the visualisation
-pipeline, and reproducibility instructions; an anonymised archive can
-be provided to the editors on request.
+The core library (model, metrics, interpretation utilities), the 11
+experiment runners, and the test suite will be released under an
+open-source licence upon acceptance. The repository URL is
+\emph{withheld for double-anonymous review} and will be disclosed
+in the camera-ready version. An anonymised archive can be provided
+to the editors on request.
 
 \paragraph{Datasets.}
 The 53 scRNA-seq datasets are all publicly available from the NCBI
