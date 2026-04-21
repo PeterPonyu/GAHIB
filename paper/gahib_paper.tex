@@ -215,19 +215,18 @@ tracks, and 20 metrics.}
 \label{fig:overview}
 \end{figure}
 
-Single-cell RNA-sequencing (scRNA-seq) has transformed our ability to
-characterise cellular heterogeneity, producing high-dimensional count
-matrices that capture thousands of genes per
-cell~\cite{zheng2017massively}.
-Extracting compact, biologically informative latent representations from
-these data underpins most downstream tasks---clustering,
-trajectory inference, differential expression analysis, and cell-type
-annotation---making representation learning a central objective in
-computational single-cell genomics.
-Widely used analysis pipelines such as
+Single-cell RNA-sequencing (scRNA-seq) now routinely resolves
+transcriptional state at the resolution of individual cells, yielding
+high-dimensional count matrices with thousands of genes per
+cell~\cite{zheng2017massively}. Almost every downstream question asked
+of these data---clustering into cell types, inferring trajectories,
+detecting differential expression, annotating states---reduces to a
+question about the \emph{latent representation} used to summarise
+each cell. Widely adopted pipelines such as
 Scanpy~\cite{wolf2018scanpy} and Leiden
-clustering~\cite{traag2019leiden} depend critically on the quality of
-these latent embeddings.
+clustering~\cite{traag2019leiden} inherit the strengths and weaknesses
+of whichever embedding is fed into them, so the choice of latent
+space is consequential far beyond the embedding step itself.
 
 Unlike bulk expression measurements, scRNA-seq matrices are sparse,
 overdispersed, and structurally heterogeneous: discrete cell identities
@@ -1039,12 +1038,11 @@ and Hyperbolic-Wasserstein (HW).
 All GM-VAE variants use MLP encoders.
 
 \Cref{tab:gmvae} shows GAHIB outperforms all variants across every metric.
-Only the Learnable PGM variant achieves competitive clustering
-(NMI\,$=$\,0.600), while the remaining variants fail catastrophically
-(NMI\,$\leq$\,0.027).
-This highlights that hyperbolic priors alone are insufficient---the
-combination of GAT encoding with IB-mediated geometry is essential
-(\cref{fig:gmvae}).
+Only the Learnable PGM variant approaches competitive clustering
+(NMI\,$=$\,0.600); the remaining priors collapse to near-random
+partitions (NMI\,$\leq$\,0.027). A hyperbolic prior on its own is not
+enough: without neighbourhood-aware encoding and an anchored bottleneck,
+the geometry has no structure to regularise (\cref{fig:gmvae}).
 
 % --- GM-VAE Table with Significance ---
 \begin{table}[!htbp]
@@ -2007,8 +2005,8 @@ would provide stronger biological validation.
 \section{Conclusion}\label{sec:conclusion}
 % ============================================================================
 
-We presented GAHIB, a graph attention VAE with a hyperbolic information
-bottleneck for single-cell omics latent space learning.
+We presented GAHIB, a graph-attention VAE with a hyperbolic
+information bottleneck for single-cell latent representation learning.
 The architecture unifies three synergistic inductive biases---GAT
 encoding, information bottleneck compression, and Lorentz hyperbolic
 geometry---into a coherent framework where each component enables the
@@ -2050,11 +2048,12 @@ models.
 % ============================================================================
 
 \paragraph{Code.}
-All source code, trained models, experiment scripts, and figure
-generators are publicly available under an open-source licence at
-\url{https://github.com/PeterPonyu/GAHIB}.
-The repository includes the 11 experiment runners, the visualisation
-pipeline, and reproducibility instructions.
+The core GAHIB library (model, metrics, interpretation utilities),
+the 11 experiment runners, and the test suite are publicly available
+under an open-source licence at
+\url{https://github.com/PeterPonyu/GAHIB}. The visualisation pipeline
+and the manuscript sources are maintained locally and can be obtained
+from the corresponding author on request.
 
 \paragraph{Datasets.}
 The 53 scRNA-seq datasets are all publicly available from the NCBI
