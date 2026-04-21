@@ -85,13 +85,28 @@ figures/
 *.png
 
 # Paper / cover letter / submission assets — treated as products, not
-# part of the public code release.
+# part of the public code release. Assembled locally by build_submission.sh.
 paper/
+paper_blind/
 cover_letter/
+highlights/
+GAHIB_submission/
 *.pdf
 *.bib
 FIGURE_INDEX.md
 STUDY_REPORT.md
+
+# LaTeX build artefacts (cleaned by build_submission.sh --clean)
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.out
+*.spl
+*.bbl
+*.blg
+*.synctex.gz
+*.tex.bak
 
 # Figure-generation / publication-plot sources — treated as internal
 # tooling, not part of the public code release.

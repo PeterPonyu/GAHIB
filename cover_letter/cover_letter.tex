@@ -1,7 +1,15 @@
 % ============================================================================
 %  Cover Letter — GAHIB
-%  Target: Journal of King Saud University –
-%          Computer and Information Sciences (JKSUCI)
+%
+%  Journal retargeting
+%  -------------------
+%  Change ALL three \newcommand lines in the "JOURNAL PROFILE" block below
+%  to retarget this letter to a different journal. The rest of the letter
+%  (Contributions, Declarations, closing) is journal-agnostic.
+%
+%  Ready-to-swap examples for other suitable venues are given as commented
+%  alternatives under the JOURNAL PROFILE block — uncomment one and comment
+%  out the JKSUCI defaults.
 % ============================================================================
 \documentclass[11pt,a4paper]{article}
 
@@ -25,13 +33,93 @@
   top=1.8cm, bottom=1.8cm,
 }
 
+% ============================================================================
+%  JOURNAL PROFILE  —  edit these three macros to retarget the letter
+% ============================================================================
+
+%  (1) Full journal name as it appears on the masthead (italicised in body).
+\newcommand{\journalFull}{Journal of King Saud University --
+  Computer and Information Sciences}
+
+%  (2) Short name / acronym used in closing lines.
+\newcommand{\journalShort}{JKSUCI}
+
+%  (3) Per-journal scope statement + bulleted fit. Keep 3--5 bullets.
+\newcommand{\journalScope}{%
+This work contributes to several core areas within \journalShort's scope:
+\begin{itemize}[leftmargin=1.4em, itemsep=1pt, topsep=2pt]
+  \item \textbf{Deep learning architectures} --- principled integration
+    of graph attention, variational inference, and non-Euclidean geometry.
+  \item \textbf{Representation learning \& information theory} ---
+    IB-guided latent compression with formal geometric constraints.
+  \item \textbf{Graph neural networks} --- systematic comparison of six
+    graph convolution operators (GAT, GCN, GraphSAGE, ChebConv, TAG,
+    GraphTransformer).
+  \item \textbf{Computational intelligence for bioinformatics} ---
+    large-scale evaluation (53 datasets, 20 metrics) with full
+    reproducibility.
+\end{itemize}%
+}
+
+% ── Alternative journal profiles (uncomment one to retarget) ─────────────
+%
+% %  Bioinformatics (Oxford)
+% \renewcommand{\journalFull}{Bioinformatics}
+% \renewcommand{\journalShort}{\emph{Bioinformatics}}
+% \renewcommand{\journalScope}{%
+% This work fits squarely within \journalShort's scope:
+% \begin{itemize}[leftmargin=1.4em, itemsep=1pt, topsep=2pt]
+%   \item \textbf{Genome analysis \& single-cell methods} --- a new
+%     representation-learning framework for scRNA-seq.
+%   \item \textbf{Statistical learning} --- paired Wilcoxon signed-rank
+%     testing with Benjamini--Hochberg correction across 53 datasets.
+%   \item \textbf{Reproducibility} --- open-source library, deterministic
+%     seed, and multi-seed robustness analysis.
+% \end{itemize}%
+% }
+%
+% %  Briefings in Bioinformatics (Oxford)
+% \renewcommand{\journalFull}{Briefings in Bioinformatics}
+% \renewcommand{\journalShort}{\emph{Briefings in Bioinformatics}}
+% \renewcommand{\journalScope}{%
+% The manuscript addresses topics central to \journalShort:
+% \begin{itemize}[leftmargin=1.4em, itemsep=1pt, topsep=2pt]
+%   \item \textbf{Deep learning for biological data} --- graph attention,
+%     information bottleneck, and hyperbolic geometry unified for
+%     scRNA-seq.
+%   \item \textbf{Benchmarking \& method comparison} --- 11 studies,
+%     20 metrics, 53 datasets, 21 baseline methods.
+%   \item \textbf{Biological interpretability} --- tissue-specific GO
+%     enrichment and unsupervised developmental hierarchy recovery.
+% \end{itemize}%
+% }
+%
+% %  NAR Genomics and Bioinformatics (Oxford)
+% \renewcommand{\journalFull}{NAR Genomics and Bioinformatics}
+% \renewcommand{\journalShort}{\emph{NARGAB}}
+%
+% %  IEEE/ACM Transactions on Computational Biology and Bioinformatics
+% \renewcommand{\journalFull}{IEEE/ACM Transactions on Computational
+%   Biology and Bioinformatics}
+% \renewcommand{\journalShort}{\emph{TCBB}}
+%
+% %  Patterns (Cell Press)
+% \renewcommand{\journalFull}{Patterns}
+% \renewcommand{\journalShort}{\emph{Patterns}}
+%
+% %  Nature Communications / Nature Machine Intelligence
+% \renewcommand{\journalFull}{Nature Machine Intelligence}
+% \renewcommand{\journalShort}{\emph{Nature Machine Intelligence}}
+
+% ============================================================================
+%  END JOURNAL PROFILE
+% ============================================================================
+
 % ── Colours ───────────────────────────────────────────────────────────────
 \definecolor{accentblue}{HTML}{1A5276}
 \definecolor{lightgray}{HTML}{F2F2F2}
 \definecolor{darkgray}{HTML}{4A4A4A}
 \definecolor{ruleblue}{HTML}{2980B9}
-\definecolor{questionbg}{HTML}{EBF5FB}
-\definecolor{questionborder}{HTML}{2E86C1}
 
 % ── Hyperlinks ────────────────────────────────────────────────────────────
 \hypersetup{
@@ -55,24 +143,6 @@
 \titleformat{\section}
   {\large\bfseries\color{accentblue}}{\thesection}{0.6em}{}
   [\vspace{-4pt}{\color{ruleblue}\titlerule[0.8pt]}]
-
-% ── Question box environment ─────────────────────────────────────────────
-\newcommand{\questionbox}[1]{%
-  \par\vspace{6pt}%
-  \noindent
-  \begin{tikzpicture}
-    \node[
-      inner sep=10pt,
-      text width=\linewidth-24pt,
-      fill=questionbg,
-      draw=questionborder,
-      line width=0.6pt,
-      rounded corners=4pt,
-      font=\itshape\color{accentblue}
-    ] {#1};
-  \end{tikzpicture}
-  \par\vspace{6pt}%
-}
 
 % ── Document ──────────────────────────────────────────────────────────────
 \begin{document}
@@ -102,8 +172,7 @@
 \noindent
 {\small\color{darkgray}%
 \textbf{To the Editor-in-Chief}\\
-\textit{Journal of King Saud University --
-Computer and Information Sciences}}
+\textit{\journalFull}}
 
 \vspace{6pt}
 
@@ -120,15 +189,12 @@ Computer and Information Sciences}}
 \vspace{2pt}
 
 I am submitting the above-titled manuscript for consideration as
-an original research article in the
-\textit{Journal of King Saud University -- Computer and Information Sciences}.
+an original research article in \textit{\journalFull}.
 The paper presents \textbf{GAHIB}, a deep generative framework that
 integrates graph attention, information-bottleneck compression, and
 Lorentz-hyperbolic geometry within a single variational autoencoder
 for learning biologically structured latent representations from
-single-cell RNA-sequencing data. The work fits JKSUCI's scope in
-deep learning architectures, representation learning, and
-computational intelligence for data-driven scientific applications.
+single-cell RNA-sequencing data.
 
 % ── Graphical abstract ────────────────────────────────────────────────────
 \vspace{4pt}
@@ -173,20 +239,9 @@ fixed 200 epochs, training time is flat with cell count under fixed
 subgraph sampling.
 
 % ── Fit to journal ────────────────────────────────────────────────────────
-\section*{Relevance to JKSUCI}
+\section*{Relevance to \journalShort}
 
-This work contributes to several core areas within the journal's scope:
-
-\begin{itemize}[leftmargin=1.4em, itemsep=1pt, topsep=2pt]
-  \item \textbf{Deep learning architectures} --- principled integration
-    of graph attention, variational inference, and non-Euclidean geometry.
-  \item \textbf{Representation learning \& information theory} ---
-    IB-guided latent compression with formal geometric constraints.
-  \item \textbf{Graph neural networks} --- systematic comparison of six
-    graph convolution operators (GAT, GCN, GraphSAGE, ChebConv, TAG, ARMA).
-  \item \textbf{Computational intelligence for bioinformatics} ---
-    large-scale evaluation (53 datasets, 20 metrics) with full reproducibility.
-\end{itemize}
+\journalScope
 
 % ── Declarations ──────────────────────────────────────────────────────────
 \section*{Declarations}
@@ -203,9 +258,9 @@ This work contributes to several core areas within the journal's scope:
 
 % ── Closing ───────────────────────────────────────────────────────────────
 \noindent
-We believe the manuscript is a strong fit for JKSUCI and would
-appreciate the editors' consideration. We look forward to the
-editors' and reviewers' feedback.
+We believe the manuscript is a strong fit for \journalShort{} and
+would appreciate the editors' consideration. We look forward to
+the editors' and reviewers' feedback.
 
 \vspace{12pt}
 
