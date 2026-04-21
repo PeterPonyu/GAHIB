@@ -1,0 +1,218 @@
+% ============================================================================
+%  Cover Letter — GAHIB
+%  Target: Journal of King Saud University –
+%          Computer and Information Sciences (JKSUCI)
+% ============================================================================
+\documentclass[11pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\usepackage{parskip}
+
+% ── Page geometry ─────────────────────────────────────────────────────────
+\geometry{
+  left=2.4cm, right=2.4cm,
+  top=1.8cm, bottom=1.8cm,
+}
+
+% ── Colours ───────────────────────────────────────────────────────────────
+\definecolor{accentblue}{HTML}{1A5276}
+\definecolor{lightgray}{HTML}{F2F2F2}
+\definecolor{darkgray}{HTML}{4A4A4A}
+\definecolor{ruleblue}{HTML}{2980B9}
+\definecolor{questionbg}{HTML}{EBF5FB}
+\definecolor{questionborder}{HTML}{2E86C1}
+
+% ── Hyperlinks ────────────────────────────────────────────────────────────
+\hypersetup{
+  colorlinks=true,
+  linkcolor=accentblue,
+  urlcolor=ruleblue,
+  pdfauthor={Zeyu Fu},
+  pdftitle={Cover Letter — GAHIB},
+}
+
+% ── Header / footer ──────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[C]{\small\color{darkgray}%
+  Zeyu Fu\enspace$\cdot$\enspace
+  Army Medical University, Chongqing\enspace$\cdot$\enspace
+  \href{mailto:fuzeyu99@126.com}{fuzeyu99@126.com}}
+
+% ── Section styling ──────────────────────────────────────────────────────
+\titleformat{\section}
+  {\large\bfseries\color{accentblue}}{\thesection}{0.6em}{}
+  [\vspace{-4pt}{\color{ruleblue}\titlerule[0.8pt]}]
+
+% ── Question box environment ─────────────────────────────────────────────
+\newcommand{\questionbox}[1]{%
+  \par\vspace{6pt}%
+  \noindent
+  \begin{tikzpicture}
+    \node[
+      inner sep=10pt,
+      text width=\linewidth-24pt,
+      fill=questionbg,
+      draw=questionborder,
+      line width=0.6pt,
+      rounded corners=4pt,
+      font=\itshape\color{accentblue}
+    ] {#1};
+  \end{tikzpicture}
+  \par\vspace{6pt}%
+}
+
+% ── Document ──────────────────────────────────────────────────────────────
+\begin{document}
+\thispagestyle{fancy}
+
+% ── Letterhead ────────────────────────────────────────────────────────────
+\noindent
+\begin{minipage}[t]{0.62\linewidth}
+  {\Large\bfseries\color{accentblue} Zeyu Fu}\\[3pt]
+  {\small\color{darkgray}
+    Institute of Combined Injury, College of Preventive Medicine\\
+    Army Medical University, Chongqing 400038, China\\
+    \href{mailto:fuzeyu99@126.com}{fuzeyu99@126.com}\\
+    ORCID: \href{https://orcid.org/0009-0001-8329-0108}{0009-0001-8329-0108}}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.34\linewidth}
+  \raggedleft
+  {\small\color{darkgray}\today}
+\end{minipage}
+
+\vspace{4pt}
+{\color{ruleblue}\hrule height 1.2pt}
+\vspace{8pt}
+
+% ── Addressee ─────────────────────────────────────────────────────────────
+\noindent
+{\small\color{darkgray}%
+\textbf{To the Editor-in-Chief}\\
+\textit{Journal of King Saud University --
+Computer and Information Sciences}}
+
+\vspace{6pt}
+
+\noindent\textbf{\large\color{accentblue}%
+  Re:\ Submission of Original Research Article ---\\[2pt]
+  ``Graph Attention VAE with a Hyperbolic Information Bottleneck\\
+  for Single-Cell Latent Representation Learning''}
+
+\vspace{8pt}
+
+% ── Opening ───────────────────────────────────────────────────────────────
+\noindent Dear Editor,
+
+\vspace{2pt}
+
+I am submitting the above-titled manuscript for consideration as
+an original research article in the
+\textit{Journal of King Saud University -- Computer and Information Sciences}.
+The paper presents \textbf{GAHIB}, a deep generative framework that
+integrates graph attention, information-bottleneck compression, and
+Lorentz-hyperbolic geometry within a single variational autoencoder
+for learning biologically structured latent representations from
+single-cell RNA-sequencing data. The work fits JKSUCI's scope in
+deep learning architectures, representation learning, and
+computational intelligence for data-driven scientific applications.
+
+% ── Graphical abstract ────────────────────────────────────────────────────
+\vspace{4pt}
+\noindent
+\begin{center}
+\includegraphics[width=\textwidth]{graphical_abstract.pdf}
+\end{center}
+\vspace{-2pt}
+
+{\small
+\noindent\textbf{Figure overview.}\enspace
+(a)~GAHIB architecture: a $k$NN graph attention encoder feeds an
+information-bottleneck compressor that is mapped to a Lorentz manifold
+and decoded by a negative-binomial head, trained end-to-end with a
+four-term loss.
+(b)~Evaluation scope: 53 datasets, 20 metrics across seven benchmark
+studies, with Wilcoxon signed-rank significance testing.
+(c)~Dataset collection: 27 cancer and 26 developmental scRNA-seq
+datasets (2{,}531--957{,}975 cells) spanning diverse tissues and scales.\par}
+
+% ── Contributions ─────────────────────────────────────────────────────────
+\section*{Contributions}
+
+To our knowledge, GAHIB is the first single-cell VAE to jointly couple
+a graph-attention encoder, a 2D information bottleneck, and a
+Lorentz-hyperbolic geometry loss within one variational objective; an
+ablation across 53 datasets shows each component contributes
+complementary signal (paired Wilcoxon signed-rank, $p<0.05$,
+BH-corrected).
+Across 11 studies spanning 7 deep-learning, 5 classical DR,
+5 geometric-VAE, and 4 disentanglement baselines on 20 metrics,
+GAHIB matches or exceeds each baseline family, with BH-corrected
+significant gains over the majority of pairwise comparisons.
+Lorentz norms correlate with developmental hierarchy ($\rho_s=0.329$
+mean across 53 datasets, up to 0.673 in enriched contexts), and the
+derived pseudotime tracks diffusion pseudotime.
+Decoder-Jacobian analysis recovers 31.5\% of marker genes, and
+GO biological-process enrichment shows individual latent dimensions
+encode distinct tissue-specific programmes without supervision.
+Multi-seed runs show $<$3\% standard deviation across metrics; at
+fixed 200 epochs, training time is flat with cell count under fixed
+subgraph sampling.
+
+% ── Fit to journal ────────────────────────────────────────────────────────
+\section*{Relevance to JKSUCI}
+
+This work contributes to several core areas within the journal's scope:
+
+\begin{itemize}[leftmargin=1.4em, itemsep=1pt, topsep=2pt]
+  \item \textbf{Deep learning architectures} --- principled integration
+    of graph attention, variational inference, and non-Euclidean geometry.
+  \item \textbf{Representation learning \& information theory} ---
+    IB-guided latent compression with formal geometric constraints.
+  \item \textbf{Graph neural networks} --- systematic comparison of six
+    graph convolution operators (GAT, GCN, GraphSAGE, ChebConv, TAG, ARMA).
+  \item \textbf{Computational intelligence for bioinformatics} ---
+    large-scale evaluation (53 datasets, 20 metrics) with full reproducibility.
+\end{itemize}
+
+% ── Declarations ──────────────────────────────────────────────────────────
+\section*{Declarations}
+
+\begin{itemize}[leftmargin=1.4em, itemsep=1pt, topsep=2pt]
+  \item Not published previously; not under consideration elsewhere.
+  \item All authors have read and approved the submitted version.
+  \item No conflicts of interest to disclose.
+  \item Source code and trained models:
+    \url{https://github.com/PeterPonyu/GAHIB}.
+\end{itemize}
+
+\vspace{4pt}
+
+% ── Closing ───────────────────────────────────────────────────────────────
+\noindent
+We believe the manuscript is a strong fit for JKSUCI and would
+appreciate the editors' consideration. We look forward to the
+editors' and reviewers' feedback.
+
+\vspace{12pt}
+
+\noindent
+Sincerely,\\[10pt]
+{\bfseries\color{accentblue} Zeyu Fu}\hspace{0.6em}%
+{\small\color{darkgray}---\ Institute of Combined Injury,
+  Army Medical University, Chongqing, China}
+
+\end{document}
