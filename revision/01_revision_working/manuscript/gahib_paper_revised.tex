@@ -73,7 +73,7 @@
 \setlength{\parsep}{0pt plus 1pt}
 \setlength{\partopsep}{0pt plus 1pt}
 
-\graphicspath{{figures/}}
+\graphicspath{{./}}
 
 % ── Math operators ────────────────────────────────────────────────────────
 \DeclareMathOperator{\KL}{KL}
@@ -195,7 +195,7 @@ information bottleneck \sep representation learning
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=\textwidth]{overview}
+\includegraphics[width=\textwidth]{figure1}
 \caption{Overview of GAHIB.
 \textbf{(a)}~GAHIB combines graph attention, an information bottleneck,
 and hyperbolic regularisation to learn biologically structured embeddings.
@@ -410,7 +410,7 @@ GAHIB is a variational autoencoder comprising three integrated modules
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{architecture}
+\includegraphics[width=\textwidth]{figure2}
 \caption{GAHIB architecture block diagram.
 Preprocessed counts are converted to a $k$-NN graph, encoded by a
 two-layer GAT, and sampled into a 10-dimensional latent code.
@@ -605,7 +605,7 @@ generalisability across biological contexts.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{dataset_taxonomy}
+\includegraphics[width=\textwidth]{figure3}
 \caption{Sunburst taxonomy of the 53 scRNA-seq evaluation datasets.
 The concentric rings summarise biological domain, subcategory, and
 dataset identity, and the legend reports the corresponding counts.}
@@ -823,7 +823,7 @@ VAE+IB+Hyp\sigA
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{ablation_all_metrics}
+\includegraphics[width=\textwidth]{figure4}
 \caption{Component ablation across all 20 evaluation metrics
 across clustering, dimensionality-reduction, and latent-structure
 metrics. Boxes show the interquartile range over 53 datasets, and
@@ -930,7 +930,7 @@ scGNN\sigA
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{scdeep_all_metrics}
+\includegraphics[width=\textwidth]{figure5}
 \caption{Deep learning benchmark across all 20 metrics for 8 methods.
 GAHIB leads the aggregate metrics and remains
 statistically superior to most baselines; detailed tests are summarised
@@ -1018,7 +1018,7 @@ DiffusionMap\sigA
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{classical_all_metrics}
+\includegraphics[width=\textwidth]{figure6}
 \caption{Classical dimensionality-reduction benchmark across 20 metrics
 for 6 methods. GAHIB leads the DRE and LSE families, while PCA and
 truncated SVD remain competitive on linearly separable datasets.}
@@ -1101,7 +1101,7 @@ GM-VAE (HW)\sigA
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{gmvae_all_metrics}
+\includegraphics[width=\textwidth]{figure7}
 \caption{Geometric VAE benchmark across 20 metrics for 6 methods.
 Only the learnable PGM variant remains competitive; the other geometric
 priors collapse to weak embeddings. GAHIB outperforms all variants.}
@@ -1193,7 +1193,7 @@ InfoVAE\sigA
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{disent_all_metrics}
+\includegraphics[width=\textwidth]{figure8}
 \caption{Disentanglement regularisation comparison across 20 metrics.
 Posterior regularisers reduce clustering quality relative to the base VAE,
 whereas GAHIB's structural prior remains consistently stronger.}
@@ -1256,7 +1256,7 @@ Transformer\sigA
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{encoder_all_metrics}
+\includegraphics[width=\textwidth]{figure9}
 \caption{Encoder architecture comparison across 20 metrics with the
 IB+Hyp objective fixed. GAT consistently outperforms Transformer and MLP,
 showing that explicit graph structure is more effective than
@@ -1339,7 +1339,7 @@ GraphTransformer\sigA
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{gconv_all_metrics}
+\includegraphics[width=\textwidth]{figure10}
 \caption{Graph convolution operator sweep across 20 metrics within the
 GAHIB framework. GAT is the strongest overall operator, while
 GraphTransformer attains the highest DRE.}
@@ -1368,7 +1368,7 @@ hierarchical organisation.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{interp_embedding_poincare}
+\includegraphics[width=\textwidth]{figure11}
 \caption{GAHIB latent representations across all 53 datasets.
 \textbf{(a)}~UMAP embeddings coloured by Leiden cluster show clear
 cluster separation.
@@ -1390,7 +1390,7 @@ All 10 latent dimensions are active across all 53 datasets
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{interp_bottleneck}
+\includegraphics[width=\textwidth]{figure12}
 \caption{Information bottleneck structure analysis.
 \textbf{(a)}~2D IB scatter of the compressed manifold coordinate
 $\bz' \in \rea^2$, coloured by Leiden cluster, showing that cluster
@@ -1420,7 +1420,7 @@ dentate ($\rho_s = 0.673$), breast cancer ($0.615$), MCCTumor
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{interp_hyperbolic}
+\includegraphics[width=\textwidth]{figure13}
 \caption{Hyperbolic hierarchy analysis.
 \textbf{(a)}~UMAP embeddings coloured by Lorentz norm
 $\lVert \text{ExpMap}(\bz_i) \rVert_\lore$; purple indicates low
@@ -1522,7 +1522,7 @@ rather than a statistical artefact of the embedding.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{fig_downstream_analysis}
+\includegraphics[width=\textwidth]{figure14}
 \caption{Downstream analysis of GAHIB.
 Panels~(a)--(d) validate GAHIB's Lorentz-norm pseudotime from the
 original gene expression on four datasets (Dentate gyrus,
@@ -1564,7 +1564,7 @@ in most but not all contexts.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{interp_summary}
+\includegraphics[width=\textwidth]{figure15}
 \caption{Gene attribution and stemness summary across all 53 datasets.
 \textbf{(a)}~UMAP coloured by the top attributed gene (decoder
 Jacobian $|\partial g/\partial z|$) per dataset; coherent spatial
@@ -1647,7 +1647,7 @@ standard deviation across seeds is typically less than 3\% of the mean.
 
 \begin{figure*}[!htbp]
 \centering
-\includegraphics[width=0.98\textwidth]{latent_dim_and_seed}
+\includegraphics[width=0.98\textwidth]{figure16}
 \caption{Latent dimension ablation and multi-seed reproducibility
 across 53 datasets, evaluated on eight clustering/embedding metrics
 (NMI, ARI, ASW, DAV, CAL, COR, DRE (UMAP), LSE).
@@ -1697,7 +1697,7 @@ the default of 128 can be used without loss.
 
 \begin{figure*}[!htbp]
 \centering
-\includegraphics[width=0.98\textwidth]{computational_cost}
+\includegraphics[width=0.98\textwidth]{figure17}
 \caption{Computational cost analysis.
 \textbf{(a)}~Training time (bars, mean$\pm$std) and peak GPU memory
 (annotations) for three architectures, aggregated across 53 datasets
@@ -1740,7 +1740,7 @@ The default $\lambda_\text{hyp}{=}5$ balances the two objectives.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{hyperparam_sensitivity}
+\includegraphics[width=\textwidth]{figure18}
 \caption{Hyperparameter sensitivity across the five key evaluation
 metrics (NMI, ARI, ASW, DRE UMAP overall quality, LSE overall quality).
 Each column varies a single hyperparameter while holding others fixed.

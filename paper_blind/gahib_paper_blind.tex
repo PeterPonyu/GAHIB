@@ -107,7 +107,7 @@
   pdfkeywords={},
 }
 
-\journal{Journal of King Saud University -- Computer and Information Sciences}
+\journal{Frontiers in Genetics}
 
 % ============================================================================
 \begin{document}
@@ -128,31 +128,26 @@ Single-Cell Representations}
 
 % ── Abstract ──────────────────────────────────────────────────────────────
 \begin{abstract}
-No existing single-cell RNA-sequencing (scRNA-seq) variational
-autoencoder jointly models the local cell-graph neighbourhood
-structure and the hierarchical, tree-like organisation of cell
-states inside a single variational objective: prior methods either
-use Euclidean MLP encoders that ignore the cell graph, or place a
-hyperbolic prior on the latent code without neighbourhood-aware
-encoding, or compress the bottleneck without a geometric anchor.
-We introduce \textbf{GAHIB} (\emph{Graph Attention VAE with a
-Hyperbolic Information Bottleneck}), which couples a graph-attention
-encoder, a 2D information bottleneck, and a Lorentz-hyperbolic
-geometry loss so that each component enables the others: the
-bottleneck supplies a stable target for the hyperbolic distance,
-and the graph encoder sharpens both geometric terms through
-neighbourhood-aware representations.
-Across 53 scRNA-seq datasets, 11 studies, and 20 metrics, GAHIB
-matches or exceeds deep-learning, classical, geometric-VAE, and
-disentanglement baselines on clustering, embedding-quality, and
-latent-space metrics, with statistically significant gains over
-the majority of pairwise comparisons (paired Wilcoxon signed-rank,
-Benjamini--Hochberg corrected). A component ablation confirms
-that each architectural term contributes complementary signal,
-and the learned latent space recovers a biologically coherent
-radial ordering of cell states on datasets with lineage annotation.
-The method is reproducible across random seeds, robust across its
-four key hyperparameters, and computationally practical at scale.
+Current single-cell RNA-sequencing (scRNA-seq) variational
+autoencoders typically model either local cell-graph structure,
+hyperbolic latent geometry, or bottleneck compression, but not all
+three within one variational objective. We present \textbf{GAHIB}
+(\emph{Graph Attention VAE with a Hyperbolic Information
+Bottleneck}), which combines a graph-attention encoder, a 2D
+information bottleneck, and a Lorentz-hyperbolic geometry loss.
+The bottleneck provides the low-dimensional target used by the
+hyperbolic term, while the graph encoder incorporates neighbourhood
+structure into the learned representation. Across 53 scRNA-seq
+datasets, 11 studies, and 20 metrics, GAHIB matches or improves on
+deep-learning, classical, geometric-VAE, and disentanglement
+baselines for clustering, embedding quality, and latent-structure
+metrics, with paired Wilcoxon signed-rank significance in most
+pairwise comparisons after Benjamini--Hochberg correction. Ablation
+analyses indicate that each component contributes measurable signal,
+and on lineage-annotated datasets the latent space shows radial
+ordering consistent with developmental progression. Performance
+remains stable across random seeds and hyperparameter sweeps, and
+runtime is practical under the tested settings.
 \end{abstract}
 
 \begin{keyword}
@@ -250,13 +245,13 @@ decoder Jacobians.
 The deep variational information bottleneck~\cite{alemi2017deep} provides
 a variational framework for structured compression, yet has not been
 coupled to hyperbolic geometry in single-cell settings.
-To our knowledge, \emph{no existing method jointly combines}
-graph-structured encoding, information-bottleneck compression, and
-hyperbolic geometry within a unified generative framework; this is the
-gap that GAHIB addresses (\cref{fig:overview}).
+Existing methods address these ingredients separately.
+GAHIB brings graph-structured encoding, information-bottleneck
+compression, and hyperbolic geometry together within one generative
+framework (\cref{fig:overview}).
 
 In this paper, we propose \textbf{GAHIB}, which integrates three
-synergistic inductive biases into a single VAE:
+structural components into a single VAE:
 \begin{enumerate}[leftmargin=*,itemsep=2pt]
 \item \textbf{Graph Attention Network (GAT) encoder.}
   A two-layer GAT operates on a $k$-nearest-neighbour cell graph,
@@ -1991,10 +1986,9 @@ would provide stronger biological validation.
 
 We presented GAHIB, a graph-attention VAE with a hyperbolic
 information bottleneck for single-cell latent representation learning.
-The architecture unifies three synergistic inductive biases---GAT
-encoding, information bottleneck compression, and Lorentz hyperbolic
-geometry---into a coherent framework where each component enables the
-others.
+The model combines GAT encoding, information bottleneck compression,
+and Lorentz hyperbolic geometry in a single framework, with the
+bottleneck providing the target used by the hyperbolic term.
 
 Through 11 experimental studies on 53 scRNA-seq datasets, we
 demonstrated that:
@@ -2004,27 +1998,26 @@ demonstrated that:
   necessary for hyperbolic geometry.
 \item GAHIB matches or exceeds 7 deep-learning, 5 classical DR, 5
   geometric-VAE, and 4 disentanglement baselines on clustering and
-  dimensionality-reduction fidelity, with BH-corrected significant
-  gains in the majority of pairwise comparisons.
+  dimensionality-reduction fidelity, with BH-corrected improvements in
+  the majority of pairwise comparisons.
 \item GAHIB's latent space captures developmental hierarchy on
   annotated datasets: hyperbolic radii correlate with stemness
   ($\rho_s{=}0.329$ mean across 53 datasets, up to 0.673 on
   developmental systems), decoder Jacobians recover 31.5\% of marker
   genes, and GAT attention shows 81.2\% mean cell-type homophily
   (46/53 datasets above 0.75).
-\item GAHIB is robust, reproducible, and efficient: performance varies
-  by less than 3\% across 5 random seeds, remains stable across
-  hyperparameter sweeps (NMI spread $\leq 0.044$), and trains in
-  22\,s/dataset with flat scaling across cell counts.
+\item GAHIB remains stable across repeated runs and tuning settings:
+  performance varies by less than 3\% across 5 random seeds, remains
+  stable across hyperparameter sweeps (NMI spread $\leq 0.044$), and
+  trains in 22\,s/dataset with flat scaling across cell counts.
 \end{enumerate}
 
-These results establish that coupling graph-structured encoding with
-hyperbolic geometry through an information bottleneck yields a principled
-and empirically effective framework for biologically meaningful single-cell
-latent space learning. More broadly, the results indicate that neighbourhood
-structure and hierarchical geometry should be treated as complementary,
-rather than competing, inductive biases in future single-cell generative
-models.
+Taken together, these results indicate that coupling graph-structured
+encoding with hyperbolic geometry through an information bottleneck is
+a useful design for single-cell latent representation learning. More
+broadly, the study suggests that neighbourhood structure and
+hierarchical geometry can be treated as complementary, rather than
+competing, inductive biases in future single-cell generative models.
 
 
 % ============================================================================

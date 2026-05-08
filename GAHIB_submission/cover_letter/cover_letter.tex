@@ -9,7 +9,7 @@
 %
 %  Ready-to-swap examples for other suitable venues are given as commented
 %  alternatives under the JOURNAL PROFILE block — uncomment one and comment
-%  out the JKSUCI defaults.
+%  out the Frontiers in Genetics defaults.
 % ============================================================================
 \documentclass[11pt,a4paper]{article}
 
@@ -38,26 +38,28 @@
 % ============================================================================
 
 %  (1) Full journal name as it appears on the masthead (italicised in body).
-\newcommand{\journalFull}{Journal of King Saud University --
-  Computer and Information Sciences}
+\newcommand{\journalFull}{Frontiers in Genetics}
 
 %  (2) Short name / acronym used in closing lines.
-\newcommand{\journalShort}{JKSUCI}
+\newcommand{\journalShort}{\emph{Frontiers in Genetics}}
 
 %  (3) Per-journal scope statement + bulleted fit. Keep 3--5 bullets.
 \newcommand{\journalScope}{%
-This work contributes to several core areas within \journalShort's scope:
+The manuscript addresses topics central to \journalShort, and in
+particular its \emph{Computational Genomics} specialty section:
 \begin{itemize}[leftmargin=1.4em, itemsep=1pt, topsep=2pt]
-  \item \textbf{Deep learning architectures} --- principled integration
-    of graph attention, variational inference, and non-Euclidean geometry.
-  \item \textbf{Representation learning \& information theory} ---
-    IB-guided latent compression with formal geometric constraints.
-  \item \textbf{Graph neural networks} --- systematic comparison of six
-    graph convolution operators (GAT, GCN, GraphSAGE, ChebConv, TAG,
-    GraphTransformer).
-  \item \textbf{Computational intelligence for bioinformatics} ---
-    large-scale evaluation (53 datasets, 20 metrics) with full
-    reproducibility.
+  \item \textbf{Single-cell genomics \& methods} --- a new
+    representation-learning framework for scRNA-seq that unifies
+    graph attention, a 2D information bottleneck, and
+    Lorentz-hyperbolic geometry within one variational objective.
+  \item \textbf{Machine learning for genomics} --- 21 baseline methods
+    benchmarked across 53 datasets and 20 metrics with paired
+    Wilcoxon signed-rank testing and Benjamini--Hochberg correction.
+  \item \textbf{Biological interpretability} --- unsupervised
+    developmental hierarchy recovery, GO biological-process enrichment,
+    and decoder-Jacobian gene attribution.
+  \item \textbf{Reproducibility \& open tools} --- open-source library,
+    deterministic seeding, and multi-seed robustness analysis.
 \end{itemize}%
 }
 
@@ -219,25 +221,24 @@ datasets (2{,}531--957{,}975 cells) spanning diverse tissues and scales.\par}
 % ── Contributions ─────────────────────────────────────────────────────────
 \section*{Contributions}
 
-To our knowledge, GAHIB is the first single-cell VAE to jointly couple
-a graph-attention encoder, a 2D information bottleneck, and a
-Lorentz-hyperbolic geometry loss within one variational objective; an
-ablation across 53 datasets shows each component contributes
-complementary signal (paired Wilcoxon signed-rank, $p<0.05$,
-BH-corrected).
+GAHIB combines a graph-attention encoder, a 2D information bottleneck,
+and a Lorentz-hyperbolic geometry loss within one variational
+objective; an ablation across 53 datasets shows that removing any of
+these components reduces part of the performance profile (paired
+Wilcoxon signed-rank, $p<0.05$, BH-corrected).
 Across 11 studies spanning 7 deep-learning, 5 classical DR,
 5 geometric-VAE, and 4 disentanglement baselines on 20 metrics,
-GAHIB matches or exceeds each baseline family, with BH-corrected
-significant gains over the majority of pairwise comparisons.
+GAHIB performs competitively across these baseline families, with
+BH-corrected improvements in many pairwise comparisons.
 Lorentz norms correlate with developmental hierarchy ($\rho_s=0.329$
 mean across 53 datasets, up to 0.673 in enriched contexts), and the
 derived pseudotime tracks diffusion pseudotime.
 Decoder-Jacobian analysis recovers 31.5\% of marker genes, and
 GO biological-process enrichment shows individual latent dimensions
-encode distinct tissue-specific programmes without supervision.
+align with tissue-specific programmes without supervision.
 Multi-seed runs show $<$3\% standard deviation across metrics; at
-fixed 200 epochs, training time is flat with cell count under fixed
-subgraph sampling.
+fixed 200 epochs, training time changes little with cell count under
+fixed subgraph sampling.
 
 % ── Fit to journal ────────────────────────────────────────────────────────
 \section*{Relevance to \journalShort}
@@ -251,6 +252,9 @@ subgraph sampling.
   \item Not published previously; not under consideration elsewhere.
   \item All authors have read and approved the submitted version.
   \item No conflicts of interest to disclose.
+  \item Funding: Special Project for Enhancing the Scientific and
+    Technological Innovation Capacity of the Army Medical University
+    (No.~2023XJS34).
   \item Source code and trained models:
     \url{https://github.com/PeterPonyu/GAHIB}.
 \end{itemize}
@@ -259,8 +263,8 @@ subgraph sampling.
 
 % ── Closing ───────────────────────────────────────────────────────────────
 \noindent
-We believe the manuscript is a strong fit for \journalShort{} and
-would appreciate the editors' consideration. We look forward to
+We believe the manuscript would be of interest to \journalShort{}
+readers and would appreciate your consideration. We look forward to
 the editors' and reviewers' feedback.
 
 \vspace{12pt}

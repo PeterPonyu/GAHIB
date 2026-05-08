@@ -73,7 +73,7 @@
 \setlength{\parsep}{0pt plus 1pt}
 \setlength{\partopsep}{0pt plus 1pt}
 
-\graphicspath{{figures/}}
+\graphicspath{{./}}
 
 % ── Math operators ────────────────────────────────────────────────────────
 \DeclareMathOperator{\KL}{KL}
@@ -93,12 +93,18 @@
 \newcommand{\sigC}{$^{*}$}       % p < 0.05
 \newcommand{\ns}{$^{\text{ns}}$} % not significant
 
+% Empty pdfauthor/pdftitle prevents any leakage of OS username or
+% draft title into the PDF metadata for double-anonymous review.
 \hypersetup{
   colorlinks=true,
   linkcolor=blue!60!black,
   citecolor=blue!60!black,
   urlcolor=blue!60!black,
   hypertexnames=false,
+  pdfauthor={},
+  pdftitle={},
+  pdfsubject={},
+  pdfkeywords={},
 }
 
 \journal{Frontiers in Genetics}
@@ -112,44 +118,13 @@
 Information Bottleneck for Biologically Structured\\
 Single-Cell Representations}
 
-\author[amu]{Zeyu Fu\textsuperscript{$\ast$,$\dagger$}}
-\ead{fuzeyu99@126.com}
-
-\author[xinqiao]{Jiawei Fu\textsuperscript{$\dagger$}}
-\ead{fjw813130855@163.com}
-
-\author[cqmu]{Xiaoxia Wang\textsuperscript{$\dagger$}}
-\ead{wxxxxxx96@163.com}
-
-\author[amutox]{Yiyao Liu\textsuperscript{$\ast$}}
-\ead{2415084056@qq.com}
-
-\author[xinqiao]{Tianfei Ran\textsuperscript{$\ast$}}
-\ead{rantianfei@tmmu.edu.cn}
-
-\address[amu]{State Key Laboratory of Trauma and Chemical Poisoning,
-Institute of Combined Injury, Chongqing Engineering Research Center for
-Nanomedicine, College of Preventive Medicine, Army Medical University,
-Chongqing, 400038, China}
-\address[xinqiao]{Department of Orthopedics, Xinqiao Hospital,
-Army Medical University, Chongqing, 400037, China}
-\address[cqmu]{Department of Hepatobiliary Surgery, The Second Affiliated
-Hospital of Chongqing Medical University, Chongqing, 400037, China}
-\address[amutox]{State Key Laboratory of Trauma and Chemical Poisoning,
-Key Laboratory of Medical Protection for Electromagnetic Radiation,
-Ministry of Education of China, Institute of Toxicology, College of
-Preventive Medicine, Army Medical University, Chongqing, 400038, China}
-
-\address[note]{%
-  \textsuperscript{$\ast$}Corresponding authors: Zeyu Fu
-  (\href{mailto:fuzeyu99@126.com}{fuzeyu99@126.com};
-  ORCID \href{https://orcid.org/0009-0001-8329-0108}{0009-0001-8329-0108}),
-  Yiyao Liu
-  (\href{mailto:2415084056@qq.com}{2415084056@qq.com}),
-  Tianfei Ran
-  (\href{mailto:rantianfei@tmmu.edu.cn}{rantianfei@tmmu.edu.cn}).
-  \textsuperscript{$\dagger$}Zeyu Fu, Jiawei Fu and Xiaoxia Wang
-  contributed equally to this work.}
+% ─────────────────────────────────────────────────────────────────────────
+% Author names, affiliations, emails, and ORCIDs have been removed for
+% double-anonymous peer review. Author information will be supplied via
+% the journal submission system (Snapp).
+% ─────────────────────────────────────────────────────────────────────────
+\author{Anonymous Author(s)}
+\address{Affiliations withheld for double-anonymous review.}
 
 % ── Abstract ──────────────────────────────────────────────────────────────
 \begin{abstract}
@@ -195,7 +170,7 @@ information bottleneck \sep representation learning
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=\textwidth]{overview}
+\includegraphics[width=\textwidth]{figure1}
 \caption{Overview of GAHIB.
 \textbf{(a)}~GAHIB combines graph attention, an information bottleneck,
 and hyperbolic regularisation to learn biologically structured embeddings.
@@ -410,7 +385,7 @@ GAHIB is a variational autoencoder comprising three integrated modules
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{architecture}
+\includegraphics[width=\textwidth]{figure2}
 \caption{GAHIB architecture block diagram.
 Preprocessed counts are converted to a $k$-NN graph, encoded by a
 two-layer GAT, and sampled into a 10-dimensional latent code.
@@ -605,7 +580,7 @@ generalisability across biological contexts.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{dataset_taxonomy}
+\includegraphics[width=\textwidth]{figure3}
 \caption{Sunburst taxonomy of the 53 scRNA-seq evaluation datasets.
 The concentric rings summarise biological domain, subcategory, and
 dataset identity, and the legend reports the corresponding counts.}
@@ -823,7 +798,7 @@ VAE+IB+Hyp\sigA
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{ablation_all_metrics}
+\includegraphics[width=\textwidth]{figure4}
 \caption{Component ablation across all 20 evaluation metrics
 across clustering, dimensionality-reduction, and latent-structure
 metrics. Boxes show the interquartile range over 53 datasets, and
@@ -930,7 +905,7 @@ scGNN\sigA
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{scdeep_all_metrics}
+\includegraphics[width=\textwidth]{figure5}
 \caption{Deep learning benchmark across all 20 metrics for 8 methods.
 GAHIB leads the aggregate metrics and remains
 statistically superior to most baselines; detailed tests are summarised
@@ -1018,7 +993,7 @@ DiffusionMap\sigA
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{classical_all_metrics}
+\includegraphics[width=\textwidth]{figure6}
 \caption{Classical dimensionality-reduction benchmark across 20 metrics
 for 6 methods. GAHIB leads the DRE and LSE families, while PCA and
 truncated SVD remain competitive on linearly separable datasets.}
@@ -1101,7 +1076,7 @@ GM-VAE (HW)\sigA
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{gmvae_all_metrics}
+\includegraphics[width=\textwidth]{figure7}
 \caption{Geometric VAE benchmark across 20 metrics for 6 methods.
 Only the learnable PGM variant remains competitive; the other geometric
 priors collapse to weak embeddings. GAHIB outperforms all variants.}
@@ -1193,7 +1168,7 @@ InfoVAE\sigA
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{disent_all_metrics}
+\includegraphics[width=\textwidth]{figure8}
 \caption{Disentanglement regularisation comparison across 20 metrics.
 Posterior regularisers reduce clustering quality relative to the base VAE,
 whereas GAHIB's structural prior remains consistently stronger.}
@@ -1256,7 +1231,7 @@ Transformer\sigA
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{encoder_all_metrics}
+\includegraphics[width=\textwidth]{figure9}
 \caption{Encoder architecture comparison across 20 metrics with the
 IB+Hyp objective fixed. GAT consistently outperforms Transformer and MLP,
 showing that explicit graph structure is more effective than
@@ -1339,7 +1314,7 @@ GraphTransformer\sigA
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{gconv_all_metrics}
+\includegraphics[width=\textwidth]{figure10}
 \caption{Graph convolution operator sweep across 20 metrics within the
 GAHIB framework. GAT is the strongest overall operator, while
 GraphTransformer attains the highest DRE.}
@@ -1368,7 +1343,7 @@ hierarchical organisation.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{interp_embedding_poincare}
+\includegraphics[width=\textwidth]{figure11}
 \caption{GAHIB latent representations across all 53 datasets.
 \textbf{(a)}~UMAP embeddings coloured by Leiden cluster show clear
 cluster separation.
@@ -1390,7 +1365,7 @@ All 10 latent dimensions are active across all 53 datasets
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{interp_bottleneck}
+\includegraphics[width=\textwidth]{figure12}
 \caption{Information bottleneck structure analysis.
 \textbf{(a)}~2D IB scatter of the compressed manifold coordinate
 $\bz' \in \rea^2$, coloured by Leiden cluster, showing that cluster
@@ -1420,7 +1395,7 @@ dentate ($\rho_s = 0.673$), breast cancer ($0.615$), MCCTumor
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{interp_hyperbolic}
+\includegraphics[width=\textwidth]{figure13}
 \caption{Hyperbolic hierarchy analysis.
 \textbf{(a)}~UMAP embeddings coloured by Lorentz norm
 $\lVert \text{ExpMap}(\bz_i) \rVert_\lore$; purple indicates low
@@ -1522,7 +1497,7 @@ rather than a statistical artefact of the embedding.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{fig_downstream_analysis}
+\includegraphics[width=\textwidth]{figure14}
 \caption{Downstream analysis of GAHIB.
 Panels~(a)--(d) validate GAHIB's Lorentz-norm pseudotime from the
 original gene expression on four datasets (Dentate gyrus,
@@ -1564,7 +1539,7 @@ in most but not all contexts.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{interp_summary}
+\includegraphics[width=\textwidth]{figure15}
 \caption{Gene attribution and stemness summary across all 53 datasets.
 \textbf{(a)}~UMAP coloured by the top attributed gene (decoder
 Jacobian $|\partial g/\partial z|$) per dataset; coherent spatial
@@ -1647,7 +1622,7 @@ standard deviation across seeds is typically less than 3\% of the mean.
 
 \begin{figure*}[!htbp]
 \centering
-\includegraphics[width=0.98\textwidth]{latent_dim_and_seed}
+\includegraphics[width=0.98\textwidth]{figure16}
 \caption{Latent dimension ablation and multi-seed reproducibility
 across 53 datasets, evaluated on eight clustering/embedding metrics
 (NMI, ARI, ASW, DAV, CAL, COR, DRE (UMAP), LSE).
@@ -1697,7 +1672,7 @@ the default of 128 can be used without loss.
 
 \begin{figure*}[!htbp]
 \centering
-\includegraphics[width=0.98\textwidth]{computational_cost}
+\includegraphics[width=0.98\textwidth]{figure17}
 \caption{Computational cost analysis.
 \textbf{(a)}~Training time (bars, mean$\pm$std) and peak GPU memory
 (annotations) for three architectures, aggregated across 53 datasets
@@ -1740,7 +1715,7 @@ The default $\lambda_\text{hyp}{=}5$ balances the two objectives.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{hyperparam_sensitivity}
+\includegraphics[width=\textwidth]{figure18}
 \caption{Hyperparameter sensitivity across the five key evaluation
 metrics (NMI, ARI, ASW, DRE UMAP overall quality, LSE overall quality).
 Each column varies a single hyperparameter while holding others fixed.
@@ -2050,12 +2025,12 @@ competing, inductive biases in future single-cell generative models.
 % ============================================================================
 
 \paragraph{Code.}
-The core GAHIB library (model, metrics, interpretation utilities),
-the 11 experiment runners, and the test suite are publicly available
-under an open-source licence at
-\url{https://github.com/PeterPonyu/GAHIB}. The visualisation pipeline
-and the manuscript sources are maintained locally and can be obtained
-from the corresponding author on request.
+The core library (model, metrics, interpretation utilities), the 11
+experiment runners, and the test suite will be released under an
+open-source licence upon acceptance. The repository URL is
+\emph{withheld for double-anonymous review} and will be disclosed
+in the camera-ready version. An anonymised archive can be provided
+to the editors on request.
 
 \paragraph{Datasets.}
 The 53 scRNA-seq datasets are all publicly available from the NCBI
@@ -2080,41 +2055,12 @@ Preprocessing scripts that reproduce the exact evaluation splits are
 included in the code repository.
 
 
-% ============================================================================
-\section*{Author Contributions}
-% ============================================================================
-
-Zeyu Fu, Jiawei Fu and Xiaoxia Wang contributed equally to this work.
-
-\textbf{Zeyu Fu:} conceptualization, methodology, software, formal
-analysis, investigation, data curation, visualization, writing---original
-draft, writing---review and editing.
-\textbf{Jiawei Fu:} methodology, investigation, data curation, formal
-analysis, writing---review and editing.
-\textbf{Xiaoxia Wang:} investigation, data curation, validation,
-writing---review and editing.
-\textbf{Yiyao Liu:} supervision, project administration, resources,
-funding acquisition, writing---review and editing.
-\textbf{Tianfei Ran:} conceptualization, supervision, project
-administration, resources, writing---review and editing.
-All authors read and approved the final manuscript.
-
-
-% ============================================================================
-\section*{Funding}
-% ============================================================================
-
-This work was supported by the Special Project for Enhancing the
-Scientific and Technological Innovation Capacity of the Army Medical
-University (No.~2023XJS34).
-
-
-% ============================================================================
-\section*{Declaration of Competing Interest}
-% ============================================================================
-
-The authors declare no competing financial or personal interests that
-could have appeared to influence the work reported in this paper.
+% ─────────────────────────────────────────────────────────────────────────
+% Author contributions, funding, and competing-interest statements have
+% been removed for double-anonymous peer review (per journal policy).
+% These will be supplied via the submission system and added to the
+% camera-ready version.
+% ─────────────────────────────────────────────────────────────────────────
 
 
 % ============================================================================
@@ -2133,15 +2079,15 @@ No new human or animal data were collected in this study.
 \section*{Declaration of AI Usage}
 % ============================================================================
 
-The authors used AI-based coding-assistance tools (large language
-models) during \emph{code development} only---specifically for
-boilerplate scaffolding, routine debugging, and visualisation helper
-generation in the GAHIB implementation and experiment pipelines.
+AI-based coding-assistance tools (large language models) were used
+during \emph{code development} only---specifically for boilerplate
+scaffolding, routine debugging, and visualisation helper generation
+in the GAHIB implementation and experiment pipelines.
 AI tools were \textbf{not} used for writing, drafting, editing, or
 refining any portion of this manuscript.
 All scientific contributions, analyses, experimental designs,
-interpretations, manuscript text, and conclusions are the original
-work of the authors, who take full responsibility for all content.
+interpretations, manuscript text, and conclusions are original work
+and full responsibility is taken for all content.
 
 
 % ============================================================================

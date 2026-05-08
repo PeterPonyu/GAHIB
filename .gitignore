@@ -79,19 +79,19 @@ data/
 results/
 GAHIB_results/
 benchmark_results/
-figures/
+/figures/
 *.csv
 *.json
 *.png
 
 # Paper / cover letter / submission assets — treated as products, not
 # part of the public code release. Assembled locally by build_submission.sh.
-paper/
-paper_blind/
-cover_letter/
-highlights/
-GAHIB_submission/
-GAHIB_submission_authored/
+/paper/
+/paper_blind/
+/cover_letter/
+/highlights/
+/GAHIB_submission/
+/GAHIB_submission_authored/
 *.pdf
 *.bib
 FIGURE_INDEX.md
