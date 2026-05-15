@@ -146,7 +146,10 @@ class GAHIBModel(scviMixin, dipMixin, betatcMixin, infoMixin, adjMixin):
         """Binary cross-entropy adjacency reconstruction (from CCVGAE)."""
         if pred_a is None:
             return torch.tensor(0.0, device=self.device)
+        if edge_weight is not None:
+            edge_weight = edge_weight.to(device=self.device, dtype=pred_a.dtype)
         adj = self._build_adj(edge_index, num_nodes, edge_weight).to_dense()
+        adj = adj.to(dtype=pred_a.dtype)
         return self.graph_loss_weight * F.binary_cross_entropy_with_logits(pred_a, adj)
 
     # ========================================================================
@@ -167,7 +170,7 @@ class GAHIBModel(scviMixin, dipMixin, betatcMixin, infoMixin, adjMixin):
         if edge_weight is not None:
             if not isinstance(edge_weight, torch.Tensor):
                 edge_weight = torch.as_tensor(edge_weight, dtype=torch.float32)
-            ew = edge_weight.to(self.device, non_blocking=True)
+            ew = edge_weight.to(self.device, dtype=torch.float32, non_blocking=True)
         else:
             ew = None
 
@@ -233,7 +236,7 @@ class GAHIBModel(scviMixin, dipMixin, betatcMixin, infoMixin, adjMixin):
         if edge_weight is not None:
             if not isinstance(edge_weight, torch.Tensor):
                 edge_weight = torch.as_tensor(edge_weight, dtype=torch.float32)
-            ew = edge_weight.to(self.device, non_blocking=True)
+            ew = edge_weight.to(self.device, dtype=torch.float32, non_blocking=True)
         else:
             ew = None
 

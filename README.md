@@ -44,7 +44,10 @@ benchmark commands.
 import scanpy as sc
 from gahib import GAHIB
 
-adata = sc.read_h5ad("data/human_cd34_bone_marrow.h5ad")
+adata = sc.read_h5ad("path/to/public_or_authorized_counts.h5ad")
+if "counts" not in adata.layers:
+    # GAHIB expects raw count-compatible values in the selected layer.
+    adata.layers["counts"] = adata.X.copy()
 
 model = GAHIB(
     adata,
@@ -94,7 +97,9 @@ bash experiments/run_parallel_group_A.sh
 
 The paths above are examples only; do not commit private workstation
 locations. See `docs/DATA.md` for dataset layout and public-release data
-notes.
+notes. GO-enrichment runs that use local MSigDB GMT files should configure
+`GAHIB_MSIGDB_DIR` or per-file `GAHIB_GMT_HUMAN` / `GAHIB_GMT_MOUSE`
+environment variables rather than hardcoded local download paths.
 
 ## Repository layout
 

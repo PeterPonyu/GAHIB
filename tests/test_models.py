@@ -304,6 +304,47 @@ class TestGraphEncoder:
         )
         assert latent.shape == (300, 8)
 
+    def test_graph_decoder_accepts_float64_edge_weights(self, synthetic_adata):
+        """Regression: graph decoder updates should normalize edge-weight dtype.
+
+        Some graph-building paths can supply float64 edge weights. Graph
+        convolutions and adjacency reconstruction should cast them to the model
+        tensor dtype instead of failing with a mixed-dtype RuntimeError.
+        """
+        try:
+            import torch_geometric
+        except ImportError:
+            pytest.skip("torch_geometric not installed")
+
+        from gahib import GAHIB
+
+        model = GAHIB(
+            synthetic_adata,
+            layer="counts",
+            encoder_type="graph",
+            graph_type="GCN",
+            use_graph_decoder=True,
+            w_adj=0.1,
+            hidden_dim=16,
+            latent_dim=4,
+            i_dim=2,
+            n_neighbors=10,
+            graph_hidden_layers=1,
+            num_subgraphs_per_epoch=1,
+            subgraph_size=128,
+            device=torch.device("cpu"),
+        )
+
+        model.update(
+            torch.as_tensor(model.X_norm, dtype=torch.float32),
+            torch.as_tensor(model.X_raw, dtype=torch.float32),
+            torch.as_tensor(model.edge_index, dtype=torch.long),
+            torch.as_tensor(model.edge_weight, dtype=torch.float64),
+        )
+
+        assert len(model.loss) == 1
+        assert np.isfinite(model.loss[-1][0])
+
     def test_centroid_inference(self, synthetic_adata, device):
         try:
             import torch_geometric

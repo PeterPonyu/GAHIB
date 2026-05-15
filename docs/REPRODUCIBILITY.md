@@ -21,6 +21,7 @@ python -m pip install -e ".[graph]"
 python -c "from gahib import GAHIB; print(GAHIB.__name__)"
 python -m compileall gahib experiments
 pytest -q tests/test_models.py::TestBaseVAE::test_instantiation
+pytest -q tests/test_models.py::TestGraphEncoder::test_graph_decoder_accepts_float64_edge_weights
 ```
 
 Run the full synthetic training suite when dependencies and compute are
@@ -66,6 +67,16 @@ bash experiments/run_all_expanded.sh
 Outputs are written under `GAHIB_results/`. Generated tables, logs, and figures
 should be reviewed before publication and archived with accession/data-source
 notes from `docs/DATA.md`.
+
+For GO-enrichment runs, configure local MSigDB GMT files through environment
+variables instead of editing scripts:
+
+```bash
+export GAHIB_MSIGDB_DIR="/path/to/msigdb"
+# or: export GAHIB_GMT_HUMAN="/path/to/c5.go.bp.v2024.1.Hs.symbols.gmt"
+#     export GAHIB_GMT_MOUSE="/path/to/m5.go.bp.v2024.1.Mm.symbols.gmt"
+python experiments/run_go_enrichment.py
+```
 
 ## 5. Public-path audit
 
