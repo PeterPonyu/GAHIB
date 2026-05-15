@@ -9,6 +9,9 @@ workstation paths, private correspondence, or unpublished data locations.
 - Input files are AnnData `.h5ad` files.
 - Benchmark filenames should match the dataset identifiers listed in
   `experiments/exp_utils.py::SELECTED_DATASETS`.
+- The public-safe benchmark metadata manifest is documented in
+  `docs/DATASET_MANIFEST.md`; the machine-readable CSV is
+  `docs/DATASET_MANIFEST.csv`.
 - Each file should contain raw counts in `adata.X` or a count-compatible layer;
   `experiments/exp_utils.py::load_and_preprocess` saves raw counts to
   `layers["counts"]`, normalizes to 10,000 counts per cell, applies `log1p`,
