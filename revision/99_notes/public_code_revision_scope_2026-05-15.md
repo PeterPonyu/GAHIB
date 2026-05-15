@@ -1,6 +1,6 @@
 # GAHIB Public-Code Revision Scope for Frontiers Formal Revision
 
-Created: 2026-05-15  
+Created: 2026-05-15
 Purpose: keep `GAHIB/` focused on publication-ready public code while formal reviewer-response assets remain in `GAHIB-assets/`.
 
 ## Boundary

@@ -45,4 +45,3 @@ Before archiving or publishing a release, verify that the public repository has:
 3. no absolute private paths such as `/home/...`, `/Users/...`, or
    workstation-specific download-directory locations in public docs/scripts;
 4. no private correspondence or response drafts in public package docs.
-
