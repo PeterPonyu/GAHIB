@@ -37,22 +37,6 @@ and examples. If `GAHIB_DATASET_DIRS` is unset, dataset discovery searches only
 this repo-local `data/` directory. The full 53-dataset benchmark is intentionally
 external and must be supplied through `GAHIB_DATASET_DIRS`.
 
-## Optional local MSigDB gene-set files
-
-`experiments/run_go_enrichment.py` uses local MSigDB GMT files for offline GO
-Biological Process enrichment. Configure these paths locally instead of editing
-the script:
-
-```bash
-export GAHIB_MSIGDB_DIR="/path/to/msigdb"
-# or override files individually:
-export GAHIB_GMT_HUMAN="/path/to/c5.go.bp.v2024.1.Hs.symbols.gmt"
-export GAHIB_GMT_MOUSE="/path/to/m5.go.bp.v2024.1.Mm.symbols.gmt"
-```
-
-For a public archive, include only redistribution-permitted gene-set files or
-document where users can obtain them from the original provider.
-
 ## Public release checklist
 
 Before archiving or publishing a release, verify that the public repository has:

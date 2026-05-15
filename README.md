@@ -97,9 +97,7 @@ bash experiments/run_parallel_group_A.sh
 
 The paths above are examples only; do not commit private workstation
 locations. See `docs/DATA.md` for dataset layout and public-release data
-notes. GO-enrichment runs that use local MSigDB GMT files should configure
-`GAHIB_MSIGDB_DIR` or per-file `GAHIB_GMT_HUMAN` / `GAHIB_GMT_MOUSE`
-environment variables rather than hardcoded local download paths.
+notes.
 
 ## Repository layout
 

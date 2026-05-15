@@ -68,16 +68,6 @@ Outputs are written under `GAHIB_results/`. Generated tables, logs, and figures
 should be reviewed before publication and archived with accession/data-source
 notes from `docs/DATA.md`.
 
-For GO-enrichment runs, configure local MSigDB GMT files through environment
-variables instead of editing scripts:
-
-```bash
-export GAHIB_MSIGDB_DIR="/path/to/msigdb"
-# or: export GAHIB_GMT_HUMAN="/path/to/c5.go.bp.v2024.1.Hs.symbols.gmt"
-#     export GAHIB_GMT_MOUSE="/path/to/m5.go.bp.v2024.1.Mm.symbols.gmt"
-python experiments/run_go_enrichment.py
-```
-
 ## 5. Public-path audit
 
 Run this check before tagging a public release:
