@@ -28,13 +28,15 @@ Optional SDE and PDE modules are provided for trajectory experiments.
 ## Install
 
 ```bash
-pip install -e .
+python -m pip install -e .
 # optional extras
-pip install -e ".[all]"
-pip install -e ".[dev]"
+python -m pip install -e ".[all]"
+python -m pip install -e ".[dev]"
 ```
 
 Python 3.9 or later. Full dependency list in `pyproject.toml`.
+See `docs/REPRODUCIBILITY.md` for environment setup, smoke tests, and
+benchmark commands.
 
 ## Usage
 
@@ -84,6 +86,16 @@ benchmark and robustness studies. Each runner takes its dataset paths
 from `GAHIB_DATASET_DIRS` and writes results to
 `GAHIB_results/{study}/`.
 
+```bash
+export GAHIB_DATASET_DIRS="/path/to/CancerDatasets:/path/to/DevelopmentDatasets"
+python experiments/run_ablation.py
+bash experiments/run_parallel_group_A.sh
+```
+
+The paths above are examples only; do not commit private workstation
+locations. See `docs/DATA.md` for dataset layout and public-release data
+notes.
+
 ## Repository layout
 
 ```text
@@ -94,8 +106,18 @@ tests/       pytest suite
 
 ## Tests
 
+Fast checks:
+
 ```bash
-pytest
+python -c "from gahib import GAHIB; print(GAHIB.__name__)"
+python -m compileall gahib experiments
+pytest -q tests/test_models.py::TestBaseVAE::test_instantiation
+```
+
+Full synthetic training suite:
+
+```bash
+pytest -q
 ```
 
 ## License

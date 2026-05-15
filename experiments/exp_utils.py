@@ -99,21 +99,22 @@ SELECTED_DATASETS = [
 
 
 def discover_datasets():
-    """Find all h5ad files and filter to selected 53.
+    """Find h5ad files and filter to selected benchmark datasets.
 
     Dataset directories are configurable via the GAHIB_DATASET_DIRS environment
-    variable (colon-separated list of paths). Falls back to ~/Downloads/ defaults.
+    variable (colon-separated list of paths). If unset, search only the
+    repo-local data/ directory so public scripts do not encode private
+    workstation defaults.
     """
     _dataset_dirs_env = os.environ.get("GAHIB_DATASET_DIRS", "")
     if _dataset_dirs_env:
-        search_dirs = _dataset_dirs_env.split(os.pathsep)
+        search_dirs = [p for p in _dataset_dirs_env.split(os.pathsep) if p]
     else:
-        search_dirs = [
-            os.path.expanduser("~/Downloads/CancerDatasets2"),
-            os.path.expanduser("~/Downloads/CancerDatasets"),
-            os.path.expanduser("~/Downloads/DevelopmentDatasets2"),
-            os.path.expanduser("~/Downloads/DevelopmentDatasets"),
-        ]
+        search_dirs = [os.path.join(PROJECT_ROOT, "data")]
+        print(
+            "GAHIB_DATASET_DIRS is not set; searching repo-local data/ only. "
+            "Set GAHIB_DATASET_DIRS for the full benchmark."
+        )
     all_files = []
     for d in search_dirs:
         all_files.extend(glob.glob(os.path.join(d, "*.h5ad")))
