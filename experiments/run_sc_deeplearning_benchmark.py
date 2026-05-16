@@ -49,7 +49,7 @@ from experiments.exp_utils import (  # noqa: E402
     get_dense_X, evaluate_latent
 )
 from experiments.external_baselines import (  # noqa: E402
-    ONLINE_GRAPH_ATTENTION_METHODS,
+    ALL_GRAPH_ATTENTION_METHODS,
     ONLINE_GRAPH_ATTENTION_SPECS,
     train_online_graph_attention,
 )
@@ -103,7 +103,7 @@ METHOD_NAMES = [
     'scVI', 'CellBLAST', 'CLEAR', 'SCALEX',
     'scDAC', 'scDeepCluster', 'scDHMap',
     'scGNN', 'scGCC', 'scSMD', 'siVAE',
-    *ONLINE_GRAPH_ATTENTION_METHODS,
+    *ALL_GRAPH_ATTENTION_METHODS,
     'GAHIB',
 ]
 
@@ -255,15 +255,15 @@ def train_online_baseline(method_name, adata1, labels, dataset_name, epochs):
 
 
 def external_status_row(dataset_name, result):
-    spec = ONLINE_GRAPH_ATTENTION_SPECS[result.method]
+    spec = ONLINE_GRAPH_ATTENTION_SPECS.get(result.method.removesuffix("-style"))
     return {
         'dataset': dataset_name,
         'method': result.method,
         'status': result.status,
         'reason': result.reason,
-        'repo_url': spec.repo_url,
-        'commit': spec.commit,
-        'license': spec.license,
+        'repo_url': spec.repo_url if spec else 'in-tree transparent PyTorch/PyG style baseline',
+        'commit': spec.commit if spec else '',
+        'license': spec.license if spec else 'MIT project code',
         'checkout': result.checkout,
         'command': result.command,
         'elapsed': result.elapsed,
@@ -353,7 +353,7 @@ def main():
             all_metrics.append(mets)
 
         # 12-14. Reviewer-requested online graph-attention baselines.
-        for method_name in ONLINE_GRAPH_ATTENTION_METHODS:
+        for method_name in ALL_GRAPH_ATTENTION_METHODS:
             print(f"  Training {method_name} (online external adapter)...")
             result = train_online_baseline(method_name, adata1, labels, dataset_name, EPOCHS)
             external_status.append(external_status_row(dataset_name, result))

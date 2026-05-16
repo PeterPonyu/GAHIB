@@ -80,3 +80,28 @@ def test_resume_detection_requires_new_online_baseline_rows(tmp_path):
         tables / "scdeep_new_df.csv", index=False
     )
     assert get_complete_benchmark_datasets(str(tables), "scdeep", required) == {"new"}
+
+
+def test_pytorch_style_registry_uses_transparent_method_names():
+    from experiments.external_baselines.online_graph_attention import (
+        ALL_GRAPH_ATTENTION_METHODS,
+        PYTORCH_GRAPH_ATTENTION_METHODS,
+    )
+
+    assert PYTORCH_GRAPH_ATTENTION_METHODS == ("scGAC-style", "SCEA-style", "scVAG-style")
+    assert ALL_GRAPH_ATTENTION_METHODS[-3:] == PYTORCH_GRAPH_ATTENTION_METHODS
+
+
+def test_pytorch_style_baseline_runs_on_tiny_fixture():
+    result = train_online_graph_attention(
+        "scGAC-style",
+        FakeAdata(),
+        ["cluster_1", "cluster_2"],
+        dataset_name="toy",
+        epochs=1,
+    )
+    assert result.status == "ok"
+    assert result.latent is not None
+    assert result.latent.shape[0] == 2
+    assert np.isfinite(result.latent).all()
+    assert "not an exact upstream execution" in result.reason
