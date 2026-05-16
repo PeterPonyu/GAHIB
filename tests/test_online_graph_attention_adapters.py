@@ -24,9 +24,22 @@ class FakeAdata:
     def __init__(self):
         self.X = np.array([[10.0, 20.0, 30.0], [40.0, 50.0, 60.0]], dtype=np.float32)
         self.layers = {"counts": np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)}
+        self.obs = {"cell_type": np.array(["secret_a", "secret_b"], dtype=object)}
         self.obs_names = ["cell_a", "cell_b"]
         self.var_names = ["gene_1", "gene_2", "gene_3"]
         self.n_obs = 2
+
+
+class SingleUseLabels:
+    def __init__(self, values):
+        self.values = values
+        self.iterations = 0
+
+    def __iter__(self):
+        self.iterations += 1
+        if self.iterations > 1:
+            raise AssertionError("labels were consumed after cluster-count inference")
+        return iter(self.values)
 
 
 def test_online_registry_has_provenance_for_reviewer_requested_style_methods():
@@ -54,6 +67,14 @@ def test_write_external_data_tsv_uses_hvg_filtered_counts_with_gene_rows(tmp_pat
     assert list(frame.index) == ["gene_1", "gene_2", "gene_3"]
     assert list(frame.columns) == ["cell_a", "cell_b"]
     assert frame.to_numpy().tolist() == [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]]
+
+
+def test_write_external_data_tsv_does_not_serialize_obs_labels(tmp_path):
+    output = write_external_data_tsv(FakeAdata(), tmp_path / "data" / "toy" / "data.tsv")
+    raw = output.read_text()
+    assert "secret_a" not in raw
+    assert "secret_b" not in raw
+    assert "cell_type" not in raw
 
 
 def test_external_checkout_adapter_logs_missing_checkout_without_metrics(monkeypatch):
@@ -138,3 +159,15 @@ def test_labels_are_not_used_as_supervised_targets():
     source = inspect.getsource(train_pytorch_graph_attention_style)
     assert "cross_entropy" not in source
     assert "labels" not in source.split("n_clusters = _cluster_count(labels)", maxsplit=1)[1]
+
+
+def test_label_values_are_consumed_once_and_never_serialized():
+    for method in PYTORCH_GRAPH_ATTENTION_METHODS:
+        labels = SingleUseLabels(["secret_celltype_a", "secret_celltype_b"])
+        result = train_online_graph_attention(method, FakeAdata(), labels, dataset_name="toy", epochs=1)
+        assert labels.iterations == 1
+        exported_fields = " ".join(
+            [result.reason, result.command, result.checkout, *result.output_files]
+        )
+        assert "secret_celltype_a" not in exported_fields
+        assert "secret_celltype_b" not in exported_fields
