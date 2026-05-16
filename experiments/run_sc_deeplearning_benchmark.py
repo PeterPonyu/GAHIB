@@ -3,7 +3,9 @@
 Experiment 8: Single-Cell Deep Learning Benchmark
 ===================================================
 Compares GAHIB against 11 published deep learning baselines from the
-external-benchmarker skill, all trained on identical preprocessed data.
+external-benchmarker skill plus three reviewer-requested online
+graph-attention baselines, all trained on identical GAHIB-preprocessed data
+when compatible external checkouts are supplied.
 
 Baselines (11 external + 1 proposed):
   1. scVI           — Lopez et al. (2018, Nat Methods) — NB-VAE gold standard
@@ -17,13 +19,22 @@ Baselines (11 external + 1 proposed):
   9. scGCC          — You et al. (2021)                — graph contrastive clustering
  10. scSMD          — (2022)                           — self-supervised multi-decoder
  11. siVAE          — Kopf et al. (2021)               — mixture-of-experts VAE
- 12. GAHIB           — Proposed                         — GAT + IB + Lorentz
+ 12. scGAC           — Cheng & Ma (2022)                — graph attentional clustering
+ 13. SCEA            — Akbari Rokn Abadi et al. (2023)  — graph attention + autoencoder
+ 14. scVAG           — Laghaee et al. (2024)            — VAE + graph attention
+ 15. GAHIB           — Proposed                         — GAT + IB + Lorentz
 
 Preprocessing: normalize, log1p, 2000 HVGs, subsample 3000 cells (shared).
-Each model: 200 epochs x 12 datasets.
+Each model: 200 epochs x selected datasets unless a source implementation
+hard constraint is recorded in the external-status CSV.
 """
 
-import sys, os, gc, time, traceback, types
+import gc
+import os
+import sys
+import time
+import traceback
+import types
 import numpy as np
 import pandas as pd
 import torch
@@ -33,11 +44,16 @@ from sklearn.model_selection import train_test_split
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
-from experiments.exp_utils import (
+from experiments.exp_utils import (  # noqa: E402
     discover_datasets, get_labels, load_and_preprocess,
-    get_dense_X, evaluate_latent, get_done_datasets
+    get_dense_X, evaluate_latent
 )
-from gahib import GAHIB
+from experiments.external_baselines import (  # noqa: E402
+    ONLINE_GRAPH_ATTENTION_METHODS,
+    ONLINE_GRAPH_ATTENTION_SPECS,
+    train_online_graph_attention,
+)
+from gahib import GAHIB  # noqa: E402
 
 # ── External benchmarker import (package alias trick) ──
 BENCHMARKER_DIR = os.environ.get(
@@ -87,8 +103,35 @@ METHOD_NAMES = [
     'scVI', 'CellBLAST', 'CLEAR', 'SCALEX',
     'scDAC', 'scDeepCluster', 'scDHMap',
     'scGNN', 'scGCC', 'scSMD', 'siVAE',
+    *ONLINE_GRAPH_ATTENTION_METHODS,
     'GAHIB',
 ]
+
+
+def get_complete_benchmark_datasets(tables_dir, prefix, required_methods=METHOD_NAMES):
+    """Return datasets whose result table already contains all current methods.
+
+    Older benchmark CSVs predate the reviewer-requested online baselines.  They
+    should not be treated as complete because doing so would silently skip the
+    scGAC/SCEA/scVAG adapter/status rows.
+    """
+    complete = set()
+    for filename in os.listdir(tables_dir) if os.path.isdir(tables_dir) else []:
+        if not (filename.startswith(f'{prefix}_') and filename.endswith('_df.csv')):
+            continue
+        dataset_name = filename.replace(f'{prefix}_', '').replace('_df.csv', '')
+        path = os.path.join(tables_dir, filename)
+        try:
+            frame = pd.read_csv(path)
+        except Exception:
+            continue
+        if 'method' in frame.columns:
+            methods = set(frame['method'].astype(str))
+        else:
+            methods = set(frame.iloc[:, 0].astype(str)) if not frame.empty else set()
+        if set(required_methods).issubset(methods):
+            complete.add(dataset_name)
+    return complete
 
 
 def make_loaders(X_dense, seed=42):
@@ -185,6 +228,50 @@ def train_gahib(adata1, epochs):
         return None
 
 
+def train_online_baseline(method_name, adata1, labels, dataset_name, epochs):
+    """Run one externally checked-out online graph-attention baseline.
+
+    Missing checkouts or incompatible legacy TensorFlow/Keras environments are
+    logged as not-runnable status rows instead of being converted into metrics.
+    """
+    try:
+        return train_online_graph_attention(
+            method_name,
+            adata1,
+            labels,
+            dataset_name=dataset_name,
+            epochs=epochs,
+        )
+    except Exception as e:
+        # Keep the benchmark resumable: an adapter bug should be visible in the
+        # status CSV but must not create fabricated performance values.
+        from experiments.external_baselines.online_graph_attention import ExternalBaselineResult
+
+        return ExternalBaselineResult(
+            method=method_name,
+            status='not_runnable',
+            reason=f'adapter_error: {type(e).__name__}: {e}',
+        )
+
+
+def external_status_row(dataset_name, result):
+    spec = ONLINE_GRAPH_ATTENTION_SPECS[result.method]
+    return {
+        'dataset': dataset_name,
+        'method': result.method,
+        'status': result.status,
+        'reason': result.reason,
+        'repo_url': spec.repo_url,
+        'commit': spec.commit,
+        'license': spec.license,
+        'checkout': result.checkout,
+        'command': result.command,
+        'elapsed': result.elapsed,
+        'outputs': ';'.join(result.output_files),
+        'source_note': spec.source_note,
+    }
+
+
 FACTORY_MAP = {}
 if HAS_BENCHMARKER:
     FACTORY_MAP = {
@@ -203,10 +290,10 @@ if HAS_BENCHMARKER:
 
 def main():
     datasets = discover_datasets()
-    done = get_done_datasets(TABLES_DIR, PREFIX)
+    done = get_complete_benchmark_datasets(TABLES_DIR, PREFIX)
 
     print(f"\n{'='*70}")
-    print(f"SINGLE-CELL DEEP LEARNING BENCHMARK")
+    print("SINGLE-CELL DEEP LEARNING BENCHMARK")
     print(f"Methods: {METHOD_NAMES}")
     print(f"Datasets: {len(datasets)} ({len(done)} already done)")
     print(f"Epochs: {EPOCHS}, Batch: {BATCH_SIZE}")
@@ -233,9 +320,10 @@ def main():
         X_dense = get_dense_X(adata1)
         labels, _ = get_labels(adata1)
         all_metrics = []
+        external_status = []
 
         # 1. scVI
-        print(f"  Training scVI...")
+        print("  Training scVI...")
         t0 = time.time()
         z = train_scvi(adata1, EPOCHS)
         elapsed = time.time() - t0
@@ -264,8 +352,22 @@ def main():
                 mets = {}
             all_metrics.append(mets)
 
-        # 12. GAHIB
-        print(f"  Training GAHIB...")
+        # 12-14. Reviewer-requested online graph-attention baselines.
+        for method_name in ONLINE_GRAPH_ATTENTION_METHODS:
+            print(f"  Training {method_name} (online external adapter)...")
+            result = train_online_baseline(method_name, adata1, labels, dataset_name, EPOCHS)
+            external_status.append(external_status_row(dataset_name, result))
+            if result.status == 'ok' and result.latent is not None:
+                mets = evaluate_latent(result.latent, labels)
+                mets['train_time'] = result.elapsed
+                print(f"    ✓ {method_name}: ARI={mets.get('ARI', 0):.3f}, time={result.elapsed:.1f}s")
+            else:
+                mets = {}
+                print(f"    ○ {method_name} not runnable: {result.reason}")
+            all_metrics.append(mets)
+
+        # 15. GAHIB
+        print("  Training GAHIB...")
         t0 = time.time()
         z = train_gahib(adata1, EPOCHS)
         elapsed = time.time() - t0
@@ -281,6 +383,10 @@ def main():
         csv_path = os.path.join(TABLES_DIR, f'{PREFIX}_{dataset_name}_df.csv')
         df.to_csv(csv_path, index_label='method')
         print(f"  Saved: {csv_path}")
+        if external_status:
+            status_path = os.path.join(TABLES_DIR, f'{PREFIX}_{dataset_name}_external_status.csv')
+            pd.DataFrame(external_status).to_csv(status_path, index=False)
+            print(f"  Saved external baseline status: {status_path}")
 
         del adata1
         gc.collect()
