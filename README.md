@@ -105,7 +105,14 @@ notes.
 gahib/       package source (core model, metrics, interpretation)
 experiments/ benchmark and robustness runners
 tests/       pytest suite
+docs/        public dataset manifest, reproducibility, and layout notes
 ```
+
+This public repository is kept code/reproducibility-first. The formal
+Frontiers revision dossier, reviewer responses, tracked-diff PDFs, final
+figures, and local evidence tables are sorted in `../GAHIB-assets/`. See
+`docs/REPOSITORY_LAYOUT.md` for the public/private boundary and path-safety
+notes.
 
 ## Tests
 
