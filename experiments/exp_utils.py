@@ -14,30 +14,32 @@ The resulting adata1 is used by ALL models:
   - Labels:          get_labels(adata1)
 """
 
-import sys, os, logging
+import glob
+import logging
+import os
+import sys
+
 import numpy as np
-import pandas as pd
 import scanpy as sc
+import scipy.sparse as sp
 
 logger = logging.getLogger(__name__)
-import scipy.sparse as sp
 
 # Add project root
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
-from gahib.metrics import compute_all_metrics
+from experiments.benchmark_config import (  # noqa: E402
+    SELECTED_DATASETS,
+    get_configured_dataset_dirs,
+    match_benchmark_datasets,
+)
+from gahib.metrics import compute_all_metrics  # noqa: E402
 
 # ── Constants ──
 MAX_CELLS = 3000
 N_HVG = 2000
 SEED = 42
-
-from experiments.benchmark_config import (
-    SELECTED_DATASETS,
-    get_configured_dataset_dirs,
-    match_benchmark_datasets,
-)
 
 
 def discover_datasets():
