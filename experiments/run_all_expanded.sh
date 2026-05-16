@@ -5,6 +5,13 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 cd "${REPO_ROOT}"
 
 PYTHON_BIN="${GAHIB_PYTHON:-python}"
+
+# Safety gate: this entrypoint launches the expensive full 53-dataset benchmark.
+# It must not start unless local data roots are complete and the runtime has
+# been explicitly acknowledged.  On failure, the Python guard prints the exact
+# public-safe run plan instead of executing any experiment.
+"${PYTHON_BIN}" -m experiments.benchmark_config
+
 LOG_PATH="GAHIB_results/run_expanded.log"
 mkdir -p GAHIB_results
 
