@@ -14,7 +14,7 @@ The resulting adata1 is used by ALL models:
   - Labels:          get_labels(adata1)
 """
 
-import sys, os, glob, logging
+import sys, os, logging
 import numpy as np
 import pandas as pd
 import scanpy as sc
@@ -33,69 +33,11 @@ MAX_CELLS = 3000
 N_HVG = 2000
 SEED = 42
 
-EXCLUDE = ['GSE120575_melanomaHmCancer', 'GSE225948_bloodMmStrokeDev']
-
-SELECTED_DATASETS = [
-    # ── Cancer (27) ──────────────────────────────────────────────────
-    # CancerDatasets/
-    'GSE123813_bccHmCancer',
-    'GSE123813_sccHmCancer',
-    'GSE123902_LungAdreHmCancer',
-    'GSE132509_acutelymluekPBMCHmCancer',
-    'GSE143423_lbm_CancerBrainHm',
-    'GSE143423_tnbc_CancerBrainHm',
-    'GSE148218_bmALLHmCancer',
-    'GSE155109_bcECHmCancer',
-    'GSE155109_bcStromaHmCancer',
-    'GSE183904_GastricHmCancer',
-    'GSE222002_TcellsHmCancer',
-    'GSE222369_NKsLymphomaHmCancer',
-    'GSE225600_breast_CancerHm',
-    'GSE235787_bcellsALLHmCancer',
-    'GSE262288_breastMetasisHmCancer',
-    'GSE98638_TcellLiverHmCancer',
-    # CancerDatasets2/
-    'GSE117988_MCCPBMCCancer',
-    'GSE117988_MCCTumorCancer',
-    'GSE124310_MMHmCancer',
-    'GSE138709_LiverCancer',
-    'GSE149655_CAHmCancer',
-    'GSE163558_stomachHmCancer',
-    'GSE168181_BreastHmCancer',
-    'GSE189357_lungAdreHmCancer',
-    'GSE225857_liverColonMetasisHmCancer',
-    'GSE228499_breastHmCancer',
-    'GSE283205_hepatoblastomaCancer',
-    # ── Development (26) ─────────────────────────────────────────────
-    # DevelopmentDatasets/
-    'GSE120505_bloodAged',
-    'GSE148215_hESCHSPCD8Hm',
-    'GSE165844_LSKMmBatch',
-    'GSE167597_spineMm',
-    'GSE192857_hESCHmTimes',
-    'GSE226131_HSCMmAged',
-    'GSE253355_bmNicheHm',
-    'bm_GSE120446',
-    'dentate',
-    'endo',
-    'hESC_GSE144024',
-    'hemato',
-    'ifnHSPC_GSE226824',
-    'lung',
-    'setty',
-    # DevelopmentDatasets2/
-    'GSE115571_LPSMmDev',
-    'GSE130148_LungHmDev',
-    'GSE142653pitHmDev',
-    'GSE145929_ProgastinMmDev',
-    'GSE145929_UrineMmDev',
-    'GSE165784_RetinaHmDev',
-    'GSE189070_astrocytesSCIMmDev',
-    'GSE213740_ADHm',
-    'GSE247719_PanSci_05_Muscle_adata',
-    'GSE247719_PanSci_T_cell_adata',
-    'GSE275119_TeethMmDev',
-]
+from experiments.benchmark_config import (
+    SELECTED_DATASETS,
+    get_configured_dataset_dirs,
+    match_benchmark_datasets,
+)
 
 
 def discover_datasets():
@@ -106,35 +48,17 @@ def discover_datasets():
     repo-local data/ directory so public scripts do not encode private
     workstation defaults.
     """
-    _dataset_dirs_env = os.environ.get("GAHIB_DATASET_DIRS", "")
-    if _dataset_dirs_env:
-        search_dirs = [p for p in _dataset_dirs_env.split(os.pathsep) if p]
-    else:
-        search_dirs = [os.path.join(PROJECT_ROOT, "data")]
+    search_dirs, env_was_set = get_configured_dataset_dirs(project_root=PROJECT_ROOT)
+    if not env_was_set:
         print(
             "GAHIB_DATASET_DIRS is not set; searching repo-local data/ only. "
             "Set GAHIB_DATASET_DIRS for the full benchmark."
         )
-    all_files = []
-    for d in search_dirs:
-        all_files.extend(glob.glob(os.path.join(d, "*.h5ad")))
-    all_files = [f for f in all_files if not any(e in f for e in EXCLUDE)]
 
-    selected = []
-    for name in SELECTED_DATASETS:
-        # Prefer exact filename match, then fall back to substring
-        exact = [f for f in all_files
-                 if os.path.basename(f).replace('.h5ad', '') == name]
-        if exact:
-            selected.append(exact[0])
-        else:
-            matches = [f for f in all_files
-                       if name in os.path.basename(f).replace('.h5ad', '')]
-            if matches:
-                selected.append(matches[0])
-            else:
-                print(f"⚠ Dataset not found: {name}")
-    return selected
+    matched, missing = match_benchmark_datasets(search_dirs)
+    for name in missing:
+        print(f"⚠ Dataset not found: {name}")
+    return [matched[name] for name in SELECTED_DATASETS if name in matched]
 
 
 def get_labels(adata, resolution=1.0):
