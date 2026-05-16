@@ -14,7 +14,22 @@ Reviewer-requested graph-attention baselines:
 The adapters preserve the normal GAHIB benchmark policy for dataset discovery,
 HVG filtering, max-cell cap, random seed, Leiden-derived evaluation labels, and
 CSV output schema. They export the already-filtered raw-count layer because the
-source implementations request raw-count `data.tsv` input.
+source implementations request raw-count `data.tsv` input. Cell-type or other
+`.obs` label annotations are not serialized into the export TSV; labels stay
+in-memory and are only used for the benchmark's unsupervised cluster-count and
+evaluation steps.
+
+## Label-use / leakage policy
+
+Benchmark labels are post-hoc Leiden/evaluation labels, not supervised training
+targets. The transparent PyTorch `*-style` routes consume the provided label
+iterable only to infer the requested number of groups for unsupervised
+cluster-count-compatible losses. Label strings and per-cell assignments are not
+exported to the external data TSV, not used for graph construction, and not used
+in a classification or cross-entropy objective. The regression tests in
+`tests/test_online_graph_attention_adapters.py` verify latent invariance under
+label-name/per-cell reassignment and assert that sentinel label values are not
+consumed after cluster-count inference or serialized in adapter outputs.
 
 If a checkout or compatible legacy TensorFlow/Keras stack is unavailable, the
 benchmark writes a `*_external_status.csv` row with `status=not_runnable` and an
