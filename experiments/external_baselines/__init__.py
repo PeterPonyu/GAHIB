@@ -5,7 +5,10 @@ from .online_graph_attention import (  # noqa: F401
     ONLINE_GRAPH_ATTENTION_METHODS,
     ONLINE_GRAPH_ATTENTION_SPECS,
     PYTORCH_GRAPH_ATTENTION_METHODS,
+    SOURCE_GRAPH_ATTENTION_METHODS,
     ExternalBaselineResult,
+    resolve_online_graph_attention_method,
+    train_external_online_graph_attention,
     train_online_graph_attention,
     train_pytorch_graph_attention_style,
 )

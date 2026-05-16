@@ -132,7 +132,11 @@ ONLINE_GRAPH_ATTENTION_SPECS: dict[str, OnlineBaselineSpec] = {
     ),
 }
 
-ONLINE_GRAPH_ATTENTION_METHODS = tuple(ONLINE_GRAPH_ATTENTION_SPECS)
+# Public benchmark methods are the transparent in-tree PyTorch routes.
+PYTORCH_GRAPH_ATTENTION_METHODS = tuple(ONLINE_GRAPH_ATTENTION_SPECS)
+ONLINE_GRAPH_ATTENTION_METHODS = PYTORCH_GRAPH_ATTENTION_METHODS
+ALL_GRAPH_ATTENTION_METHODS = PYTORCH_GRAPH_ATTENTION_METHODS
+SOURCE_GRAPH_ATTENTION_METHODS = tuple(spec.source_name for spec in ONLINE_GRAPH_ATTENTION_SPECS.values())
 
 _METHOD_ALIASES = {
     "scGAC": "scGAC-style",
@@ -225,7 +229,10 @@ def _cluster_count(labels: Iterable[object]) -> int:
     labels_arr = np.asarray(list(labels)).astype(str)
     count = len(np.unique(labels_arr))
     if count < 2:
-        raise ExternalBaselineError("graph-attention style baselines require at least two label groups for k selection")
+        raise ExternalBaselineError(
+            "graph-attention style baselines require at least two distinct groups to mirror "
+            "the source implementations' cluster-count argument"
+        )
     return count
 
 
@@ -256,7 +263,9 @@ def _torch_feature_matrix(adata) -> np.ndarray:
 
 def _knn_edge_index(x: np.ndarray, k_neighbors: int) -> torch.Tensor:
     n_obs = x.shape[0]
-    n_neighbors = min(max(1, k_neighbors), n_obs - 1) + 1
+    # ``kneighbors(X=None)`` excludes each training sample itself, so request
+    # only true neighbors here and add explicit self-loops below.
+    n_neighbors = min(max(1, k_neighbors), n_obs - 1)
     neighbors = NearestNeighbors(n_neighbors=n_neighbors, metric="euclidean")
     indices = neighbors.fit(x).kneighbors(return_distance=False)
     edges: set[tuple[int, int]] = set()
@@ -440,8 +449,8 @@ def train_pytorch_graph_attention_style(
         method=method_key,
         status="ok",
         reason=(
-            f"completed transparent PyTorch {method_key} route inspired by {spec.source_name}; "
-            f"{spec.equivalence_note} Source: {spec.repo_url}@{spec.commit}"
+            f"completed transparent PyTorch {method_key} route; not an exact upstream execution of "
+            f"{spec.source_name}; {spec.equivalence_note} Source: {spec.repo_url}@{spec.commit}"
         ),
         latent=latent,
         command=command,

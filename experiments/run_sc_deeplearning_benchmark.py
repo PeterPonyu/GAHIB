@@ -4,8 +4,8 @@ Experiment 8: Single-Cell Deep Learning Benchmark
 ===================================================
 Compares GAHIB against 11 published deep learning baselines from the
 external-benchmarker skill plus three reviewer-requested online
-graph-attention baselines, all trained on identical GAHIB-preprocessed data
-when compatible external checkouts are supplied.
+graph-attention-style baselines, all trained on identical GAHIB-preprocessed data
+without vendoring third-party source code.
 
 Baselines (11 external + 1 proposed):
   1. scVI           — Lopez et al. (2018, Nat Methods) — NB-VAE gold standard
@@ -19,14 +19,14 @@ Baselines (11 external + 1 proposed):
   9. scGCC          — You et al. (2021)                — graph contrastive clustering
  10. scSMD          — (2022)                           — self-supervised multi-decoder
  11. siVAE          — Kopf et al. (2021)               — mixture-of-experts VAE
- 12. scGAC           — Cheng & Ma (2022)                — graph attentional clustering
- 13. SCEA            — Akbari Rokn Abadi et al. (2023)  — graph attention + autoencoder
- 14. scVAG           — Laghaee et al. (2024)            — VAE + graph attention
+ 12. scGAC-style     — Cheng & Ma (2022)                — PyTorch graph-attention style
+ 13. SCEA-style      — Akbari Rokn Abadi et al. (2023)  — PyTorch graph-attention AE style
+ 14. scVAG-style     — Laghaee et al. (2024)            — PyTorch variational graph-attention style
  15. GAHIB           — Proposed                         — GAT + IB + Lorentz
 
 Preprocessing: normalize, log1p, 2000 HVGs, subsample 3000 cells (shared).
-Each model: 200 epochs x selected datasets unless a source implementation
-hard constraint is recorded in the external-status CSV.
+Each model: 200 epochs x selected datasets. External-status CSV rows record
+source provenance and transparent equivalence boundaries for the style routes.
 """
 
 import gc
@@ -51,6 +51,7 @@ from experiments.exp_utils import (  # noqa: E402
 from experiments.external_baselines import (  # noqa: E402
     ALL_GRAPH_ATTENTION_METHODS,
     ONLINE_GRAPH_ATTENTION_SPECS,
+    resolve_online_graph_attention_method,
     train_online_graph_attention,
 )
 from gahib import GAHIB  # noqa: E402
@@ -229,10 +230,10 @@ def train_gahib(adata1, epochs):
 
 
 def train_online_baseline(method_name, adata1, labels, dataset_name, epochs):
-    """Run one externally checked-out online graph-attention baseline.
+    """Run one transparent PyTorch graph-attention style baseline.
 
-    Missing checkouts or incompatible legacy TensorFlow/Keras environments are
-    logged as not-runnable status rows instead of being converted into metrics.
+    Adapter errors are logged as not-runnable status rows instead of being
+    converted into fabricated performance values.
     """
     try:
         return train_online_graph_attention(
@@ -255,20 +256,20 @@ def train_online_baseline(method_name, adata1, labels, dataset_name, epochs):
 
 
 def external_status_row(dataset_name, result):
-    spec = ONLINE_GRAPH_ATTENTION_SPECS.get(result.method.removesuffix("-style"))
+    spec = ONLINE_GRAPH_ATTENTION_SPECS.get(resolve_online_graph_attention_method(result.method))
     return {
         'dataset': dataset_name,
         'method': result.method,
         'status': result.status,
         'reason': result.reason,
-        'repo_url': spec.repo_url if spec else 'in-tree transparent PyTorch/PyG style baseline',
+        'repo_url': spec.repo_url if spec else 'in-tree transparent PyTorch style baseline',
         'commit': spec.commit if spec else '',
         'license': spec.license if spec else 'MIT project code',
         'checkout': result.checkout,
         'command': result.command,
         'elapsed': result.elapsed,
         'outputs': ';'.join(result.output_files),
-        'source_note': spec.source_note,
+        'source_note': spec.source_note if spec else '',
     }
 
 
@@ -352,7 +353,7 @@ def main():
                 mets = {}
             all_metrics.append(mets)
 
-        # 12-14. Reviewer-requested online graph-attention baselines.
+        # 12-14. Reviewer-requested transparent graph-attention style baselines.
         for method_name in ALL_GRAPH_ATTENTION_METHODS:
             print(f"  Training {method_name} (online external adapter)...")
             result = train_online_baseline(method_name, adata1, labels, dataset_name, EPOCHS)
