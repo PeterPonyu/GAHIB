@@ -17,6 +17,7 @@ metrics.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import shutil
@@ -24,7 +25,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Iterable, Mapping, Optional
 
@@ -60,6 +61,11 @@ class TorchStyleConfig:
     hidden_dim: int
     latent_dim: int = 10
     k_neighbors: int = 15
+    optimizer: str = "Adam"
+    learning_rate: float = 1e-3
+    weight_decay: float = 1e-4
+    max_grad_norm: float = 5.0
+    training_mode: str = "full_batch"
     dropout: float = 0.1
     graph_layers: int = 2
     graph_smoothness_weight: float = 0.02
@@ -81,6 +87,7 @@ class ExternalBaselineResult:
     checkout: str = ""
     elapsed: float = 0.0
     output_files: tuple[str, ...] = ()
+    training_config: str = ""
 
 
 ONLINE_GRAPH_ATTENTION_SPECS: dict[str, OnlineBaselineSpec] = {
@@ -179,6 +186,41 @@ def resolve_online_graph_attention_method(method: str) -> str:
     if method in _METHOD_ALIASES:
         return _METHOD_ALIASES[method]
     raise KeyError(f"unknown online graph-attention baseline: {method}")
+
+
+def get_torch_style_config(method: str) -> dict[str, object]:
+    """Return the explicit comparable config for one PyTorch style baseline."""
+
+    method_key = resolve_online_graph_attention_method(method)
+    return asdict(_TORCH_STYLE_CONFIGS[method_key])
+
+
+def graph_attention_style_training_config(method: str, *, epochs: int, seed: int = 42) -> dict[str, object]:
+    """Return auditable training metadata recorded with style-baseline runs.
+
+    Labels are used only to infer a cluster count for unsupervised style losses;
+    label names/classes are not supervised optimization targets.
+    """
+
+    method_key = resolve_online_graph_attention_method(method)
+    config = get_torch_style_config(method_key)
+    return {
+        "method": method_key,
+        "epochs": max(1, int(epochs)),
+        "seed": int(seed),
+        "label_usage": "cluster_count_only",
+        **config,
+    }
+
+
+def graph_attention_style_training_config_json(method: str, *, epochs: int, seed: int = 42) -> str:
+    """Stable JSON form for status CSVs and audit logs."""
+
+    return json.dumps(
+        graph_attention_style_training_config(method, epochs=epochs, seed=seed),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
 
 
 def _dense(matrix: object) -> np.ndarray:
@@ -412,7 +454,11 @@ def train_pytorch_graph_attention_style(
     x = torch.as_tensor(x_np, dtype=torch.float32, device=resolved_device)
     edge_index = _knn_edge_index(x_np, config.k_neighbors).to(resolved_device)
     model = _GraphAttentionAutoencoder(x.shape[1], n_clusters=n_clusters, config=config).to(resolved_device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
+    optimizer = torch.optim.Adam(
+        model.parameters(),
+        lr=config.learning_rate,
+        weight_decay=config.weight_decay,
+    )
     max_epochs = max(1, int(epochs))
 
     model.train()
@@ -428,7 +474,7 @@ def train_pytorch_graph_attention_style(
             kl = -0.5 * torch.mean(1.0 + logvar - mu.pow(2) - logvar.exp())
             loss = loss + config.kl_weight * kl
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=config.max_grad_norm)
         optimizer.step()
 
     model.eval()
@@ -443,7 +489,8 @@ def train_pytorch_graph_attention_style(
     elapsed = time.time() - start
     command = (
         f"pytorch_graph_attention_style(method={method_key}, dataset={sanitize_dataset_name(dataset_name)}, "
-        f"epochs={max_epochs}, latent_dim={config.latent_dim}, k_neighbors={config.k_neighbors}, seed={seed})"
+        f"epochs={max_epochs}, latent_dim={config.latent_dim}, k_neighbors={config.k_neighbors}, "
+        f"optimizer={config.optimizer}, lr={config.learning_rate}, weight_decay={config.weight_decay}, seed={seed})"
     )
     return ExternalBaselineResult(
         method=method_key,
@@ -455,6 +502,7 @@ def train_pytorch_graph_attention_style(
         latent=latent,
         command=command,
         elapsed=elapsed,
+        training_config=graph_attention_style_training_config_json(method_key, epochs=max_epochs, seed=seed),
     )
 
 

@@ -35,3 +35,28 @@ If a checkout or compatible legacy TensorFlow/Keras stack is unavailable, the
 benchmark writes a `*_external_status.csv` row with `status=not_runnable` and an
 exact reason. Empty metric rows in `*_df.csv` must therefore be interpreted as
 missing/not-runnable, not as failed performance values.
+
+## Transparent PyTorch style config
+
+The public benchmark path intentionally reports these methods as `*-style`
+routes, not exact upstream executions. The shared comparable training policy is:
+
+- benchmark caller supplies `epochs` (`200` in
+  `experiments/run_sc_deeplearning_benchmark.py`);
+- seed `42`;
+- full-batch graph-attention training on the GAHIB-preprocessed HVG matrix;
+- latent dimension `10`, `k_neighbors=15`, two graph layers;
+- Adam optimizer with `learning_rate=1e-3`, `weight_decay=1e-4`, and gradient
+  clipping at norm `5.0`;
+- labels are used only to infer the number of clusters for unsupervised style
+  losses, never as supervised targets.
+
+Per-method style knobs are defined in
+`experiments/external_baselines/online_graph_attention.py` and recorded as JSON
+in each `*_external_status.csv` row:
+
+| Method | hidden_dim | dropout | graph_smoothness_weight | extra style loss |
+| --- | ---: | ---: | ---: | --- |
+| `scGAC-style` | 96 | 0.08 | 0.03 | `cluster_balance_weight=0.01` |
+| `SCEA-style` | 80 | 0.12 | 0.05 | `input_dropout=0.08` |
+| `scVAG-style` | 96 | 0.08 | 0.02 | `variational=True`, `kl_weight=1e-3` |

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import json
 
 import numpy as np
 import pandas as pd
@@ -11,6 +12,8 @@ from experiments.external_baselines.online_graph_attention import (
     ONLINE_GRAPH_ATTENTION_METHODS,
     ONLINE_GRAPH_ATTENTION_SPECS,
     PYTORCH_GRAPH_ATTENTION_METHODS,
+    get_torch_style_config,
+    graph_attention_style_training_config,
     sanitize_dataset_name,
     train_external_online_graph_attention,
     train_online_graph_attention,
@@ -54,6 +57,29 @@ def test_online_registry_has_provenance_for_reviewer_requested_style_methods():
         assert spec.license in {"GPL-3.0", "MIT"}
         assert spec.env_var.startswith("GAHIB_")
         assert "not exact" in spec.equivalence_note
+
+
+def test_style_baseline_configs_are_explicit_and_comparable():
+    configs = {
+        method: graph_attention_style_training_config(method, epochs=200, seed=42)
+        for method in PYTORCH_GRAPH_ATTENTION_METHODS
+    }
+
+    assert configs["scGAC-style"]["hidden_dim"] == 96
+    assert configs["SCEA-style"]["input_dropout"] == 0.08
+    assert configs["scVAG-style"]["variational"] is True
+    for method, config in configs.items():
+        assert config["method"] == method
+        assert config["epochs"] == 200
+        assert config["latent_dim"] == 10
+        assert config["k_neighbors"] == 15
+        assert config["optimizer"] == "Adam"
+        assert config["learning_rate"] == 1e-3
+        assert config["weight_decay"] == 1e-4
+        assert config["max_grad_norm"] == 5.0
+        assert config["training_mode"] == "full_batch"
+        assert config["label_usage"] == "cluster_count_only"
+        assert get_torch_style_config(method)["hidden_dim"] == config["hidden_dim"]
 
 
 def test_sanitize_dataset_name_keeps_external_script_safe():
@@ -144,6 +170,10 @@ def test_external_status_row_records_style_source_provenance():
     assert row["commit"] == ONLINE_GRAPH_ATTENTION_SPECS["scGAC-style"].commit
     assert row["license"] == "GPL-3.0"
     assert "Cheng" in row["source_note"]
+    training_config = json.loads(row["training_config"])
+    assert training_config["method"] == "scGAC-style"
+    assert training_config["epochs"] == 1
+    assert training_config["label_usage"] == "cluster_count_only"
 
 
 def test_labels_are_not_used_as_supervised_targets():

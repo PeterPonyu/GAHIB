@@ -51,6 +51,7 @@ from experiments.exp_utils import (  # noqa: E402
 from experiments.external_baselines import (  # noqa: E402
     ALL_GRAPH_ATTENTION_METHODS,
     ONLINE_GRAPH_ATTENTION_SPECS,
+    graph_attention_style_training_config_json,
     resolve_online_graph_attention_method,
     train_online_graph_attention,
 )
@@ -252,6 +253,7 @@ def train_online_baseline(method_name, adata1, labels, dataset_name, epochs):
             method=method_name,
             status='not_runnable',
             reason=f'adapter_error: {type(e).__name__}: {e}',
+            training_config=graph_attention_style_training_config_json(method_name, epochs=epochs),
         )
 
 
@@ -267,6 +269,7 @@ def external_status_row(dataset_name, result):
         'license': spec.license if spec else 'MIT project code',
         'checkout': result.checkout,
         'command': result.command,
+        'training_config': result.training_config,
         'elapsed': result.elapsed,
         'outputs': ';'.join(result.output_files),
         'source_note': spec.source_note if spec else '',
