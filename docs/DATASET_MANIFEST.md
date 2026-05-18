@@ -1,9 +1,10 @@
 # Public benchmark dataset manifest
 
 `DATASET_MANIFEST.csv` is a public-safe metadata manifest for the 53 benchmark
-cohorts used by the GAHIB revision. It contains metadata derived from the
-revision manifests only; it does not include raw data, private workstation paths,
-reviewer correspondence, or unpublished local download locations.
+cohorts used by the GAHIB benchmark package. It contains metadata derived from
+available project manifests only; it does not include raw data, private
+workstation paths, private correspondence, or unpublished local download
+locations.
 
 ## Scope
 

@@ -28,7 +28,7 @@ python experiments/run_ablation.py
 ```
 
 The `/path/to/...` entries above are examples only. Do not commit private paths,
-access tokens, private correspondence, or unpublished raw data locations.
+credentials, private correspondence, or unpublished data locations.
 
 ## Included small data
 
@@ -45,6 +45,6 @@ Before archiving or publishing a release, verify that the public repository has:
    redistributed;
 2. a statement for any cohort that requires users to obtain data from the
    original provider;
-3. no absolute private paths such as `/home/...`, `/Users/...`, or
-   workstation-specific download-directory locations in public docs/scripts;
+3. no absolute workstation paths or download-directory locations in public
+   docs/scripts;
 4. no private correspondence or response drafts in public package docs.

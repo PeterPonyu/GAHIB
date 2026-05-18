@@ -2,7 +2,7 @@
 
 This page collects public-safe commands for installing GAHIB, running smoke
 checks, and reproducing benchmark tables from local `.h5ad` inputs. Commands are
-repo-relative and avoid private workstation paths.
+repo-relative and avoid absolute workstation-specific paths.
 
 ## 1. Create an environment
 
@@ -43,7 +43,8 @@ export GAHIB_DATASET_DIRS="/path/to/CancerDatasets:/path/to/DevelopmentDatasets"
 `GAHIB_DATASET_DIRS` must point to directories containing `.h5ad` files whose
 basenames match the identifiers in `experiments/exp_utils.py`. If it is unset,
 dataset discovery searches only the repo-local `data/` directory. Example paths
-are placeholders; replace them locally and do not commit private paths.
+are placeholders; replace them locally and do not commit absolute
+workstation-specific paths.
 
 ## 4. Run public benchmark scripts
 
@@ -101,10 +102,11 @@ Run this check before tagging a public release:
 
 ```bash
 rg -n --hidden \
-  -g '!*.pdf' -g '!*.png' -g '!*.jpg' -g '!.git/**' -g '!.venv/**' \
-  '/ho[m]e/|/Us[e]rs/|Downloa[d]s|passwor[d]|toke[n]|secre[t]|confiden[t]ial' .
+  -g '!*.pdf' -g '!*.png' -g '!*.jpg' -g '!.git' -g '!.git/**' -g '!.venv/**' \
+  -g '!revision/**' -g '!paper/**' -g '!paper_blind/**' -g '!cover_letter/**' -g '!highlights/**' \
+  '/ho[m]e/|/Us[e]rs/|Downloa[d]s|passwor[d]|\btoke[n]\b|\bsecre[t]\b|confiden[t]ial' .
 ```
 
-Expected findings should be limited to documented example placeholders or the
-public scope note under `revision/99_notes/`. Replace any executable private
-paths in scripts with repo-relative paths or environment variables.
+Expected output is empty for the public code package. Inspect any hit manually
+and replace executable private paths in scripts with repo-relative paths or
+environment variables.

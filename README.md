@@ -10,6 +10,14 @@ A PyTorch implementation of a graph-attention variational autoencoder with
 an information bottleneck and a Lorentz hyperbolic geometry loss, applied
 to single-cell RNA-seq latent representation learning.
 
+## Public release scope
+
+This repository is the code and reproducibility package for GAHIB. It contains
+the Python package, public benchmark runners, tests, and documentation needed to
+run the project with locally supplied or publicly authorized data. Submission
+materials, generated figures, local evidence tables, and non-redistributable
+datasets are intentionally kept outside the public code package.
+
 ## What it does
 
 Given a `scanpy` `AnnData` with raw counts, GAHIB fits a VAE whose encoder
@@ -21,7 +29,7 @@ shaped by three losses:
 - an information-bottleneck term that compresses the latent into a 2D
   manifold coordinate, and
 - a Lorentz-hyperbolic term that anchors the manifold coordinate on the
-  hyperboloid so radial distance encodes hierarchy.
+  hyperboloid for hierarchy-oriented latent geometry experiments.
 
 Optional SDE and PDE modules are provided for trajectory experiments.
 
@@ -108,11 +116,8 @@ tests/       pytest suite
 docs/        public dataset manifest, reproducibility, and layout notes
 ```
 
-This public repository is kept code/reproducibility-first. The formal
-Frontiers revision dossier, reviewer responses, tracked-diff PDFs, final
-figures, and local evidence tables are sorted in `../GAHIB-assets/`. See
-`docs/REPOSITORY_LAYOUT.md` for the public/private boundary and path-safety
-notes.
+This public repository is kept code/reproducibility-first. See
+`docs/REPOSITORY_LAYOUT.md` for the release boundary and path-safety notes.
 
 ## Tests
 

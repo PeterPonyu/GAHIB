@@ -3,7 +3,7 @@
 This directory intentionally contains **adapters only**, not vendored third-party
 baseline code.
 
-Reviewer-requested graph-attention baselines:
+Graph-attention comparison baselines:
 
 | Method | Primary source checkout | Commit verified 2026-05-16 | License | Run policy |
 | --- | --- | --- | --- | --- |
