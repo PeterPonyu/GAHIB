@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the article in preferred-citation."
+title: "GAHIB"
+type: software
+authors:
+  - family-names: "Fu"
+    given-names: "Zeyu"
+  - family-names: "Fu"
+    given-names: "Jiawei"
+  - family-names: "Wang"
+    given-names: "Xiaoxia"
+  - family-names: "Liu"
+    given-names: "Yiyao"
+  - family-names: "Ran"
+    given-names: "Tianfei"
+repository-code: "https://github.com/PeterPonyu/GAHIB"
+license: MIT
+preferred-citation:
+  type: article
+  title: "GAHIB: graph attention VAE with a hyperbolic information bottleneck for biologically structured single-cell representations"
+  authors:
+    - family-names: "Fu"
+      given-names: "Zeyu"
+    - family-names: "Fu"
+      given-names: "Jiawei"
+    - family-names: "Wang"
+      given-names: "Xiaoxia"
+    - family-names: "Liu"
+      given-names: "Yiyao"
+    - family-names: "Ran"
+      given-names: "Tianfei"
+  journal: "Frontiers in Genetics"
+  volume: "17"
+  start: "1863100"
+  year: 2026
+  doi: "10.3389/fgene.2026.1863100"

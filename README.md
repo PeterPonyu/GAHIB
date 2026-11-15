@@ -98,6 +98,26 @@ tests/       pytest suite
 pytest
 ```
 
+## Citation
+
+If you use GAHIB, please cite the article:
+
+> Fu Z, Fu J, Wang X, Liu Y, Ran T. GAHIB: graph attention VAE with a hyperbolic information bottleneck for biologically structured single-cell representations. *Frontiers in Genetics*. 2026;17:1863100. https://doi.org/10.3389/fgene.2026.1863100
+
+```bibtex
+@article{fu2026gahib,
+  author  = {Fu, Zeyu and Fu, Jiawei and Wang, Xiaoxia and Liu, Yiyao and Ran, Tianfei},
+  title   = {GAHIB: graph attention VAE with a hyperbolic information bottleneck for biologically structured single-cell representations},
+  journal = {Frontiers in Genetics},
+  volume  = {17},
+  pages   = {1863100},
+  year    = {2026},
+  doi     = {10.3389/fgene.2026.1863100}
+}
+```
+
+GitHub's "Cite this repository" button reads the same record from `CITATION.cff`.
+
 ## License
 
 MIT. See `LICENSE`.
