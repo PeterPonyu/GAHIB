@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools >= 64", "setuptools-scm"]
+requires = ["setuptools >= 64"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -33,10 +33,12 @@ dependencies = [
 [project.optional-dependencies]
 graph = ["torch-geometric"]
 scanpy = ["scanpy"]
+scvi = ["scvi-tools"]
 viz = ["matplotlib", "seaborn"]
 all = [
     "torch-geometric",
     "scanpy",
+    "scvi-tools",
     "matplotlib",
     "seaborn",
 ]
@@ -46,6 +48,11 @@ dev = [
     "matplotlib",
     "seaborn",
 ]
+
+[project.urls]
+Homepage = "https://github.com/PeterPonyu/GAHIB"
+Repository = "https://github.com/PeterPonyu/GAHIB"
+Paper = "https://doi.org/10.3389/fgene.2026.1863100"
 
 [tool.setuptools.packages.find]
 include = ["gahib*"]

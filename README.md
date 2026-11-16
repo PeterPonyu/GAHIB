@@ -28,11 +28,12 @@ Optional SDE and PDE modules are provided for trajectory experiments.
 ## Install
 
 ```bash
-pip install -e .
-# optional extras
-pip install -e ".[all]"
-pip install -e ".[dev]"
+pip install gahib
+# graph encoders, scanpy and scVI helpers
+pip install "gahib[all]"
 ```
+
+For development, clone the repository and run `pip install -e ".[all]"`.
 
 Python 3.9 or later. Full dependency list in `pyproject.toml`.
 
