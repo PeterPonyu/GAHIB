@@ -6,6 +6,9 @@
 
 # GAHIB
 
+[![PyPI](https://img.shields.io/pypi/v/gahib.svg)](https://pypi.org/project/gahib/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24268692.svg)](https://doi.org/10.5281/zenodo.24268692)
+
 A PyTorch implementation of a graph-attention variational autoencoder with
 an information bottleneck and a Lorentz hyperbolic geometry loss, applied
 to single-cell RNA-seq latent representation learning.
@@ -22,8 +25,6 @@ shaped by three losses:
   manifold coordinate, and
 - a Lorentz-hyperbolic term that anchors the manifold coordinate on the
   hyperboloid so radial distance encodes hierarchy.
-
-Optional SDE and PDE modules are provided for trajectory experiments.
 
 ## Install
 
@@ -67,16 +68,15 @@ encoder.
 
 The hyperbolic loss depends on the information-bottleneck target. With
 `irecon=0`, the bottleneck coordinate is untrained and the Lorentz
-distance becomes degenerate. The model enforces this dependency
-internally.
+distance becomes degenerate. Set `irecon` above zero whenever `lorentz`
+is above zero, as in the usage example; the model does not check this.
 
 ## Main outputs
 
-| Call                  | Returns                               |
-| --------------------- | ------------------------------------- |
-| `model.get_latent()`  | the learned embedding                 |
-| `model.get_time()`    | the trajectory time estimate (if SDE) |
-| `model.get_centroid()`| per-cluster latent centroids          |
+| Call                   | Returns                                                                                |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| `model.get_latent()`   | latent code sampled from each cell's posterior, shape `(n_cells, latent_dim)`          |
+| `model.get_centroid()` | posterior mean of each cell's latent code (no sampling), shape `(n_cells, latent_dim)` |
 
 ## Experiment runners
 

@@ -52,7 +52,9 @@ dev = [
 [project.urls]
 Homepage = "https://github.com/PeterPonyu/GAHIB"
 Repository = "https://github.com/PeterPonyu/GAHIB"
+Documentation = "https://peterponyu.github.io/gahib-site/"
 Paper = "https://doi.org/10.3389/fgene.2026.1863100"
+Issues = "https://github.com/PeterPonyu/GAHIB/issues"
 
 [tool.setuptools.packages.find]
 include = ["gahib*"]
