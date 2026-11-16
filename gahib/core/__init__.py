@@ -17,4 +17,4 @@ from .agent import GAHIB
 
 __all__ = ["GAHIB"]
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"

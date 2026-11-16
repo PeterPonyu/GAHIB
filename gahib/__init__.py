@@ -19,7 +19,7 @@ from .core.agent import GAHIB
 
 __all__ = ["GAHIB"]
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 __author__ = "Zeyu Fu"
 __project__ = "GAHIB"
 __full_name__ = "Graph Attention Hyperbolic Information Bottleneck"
