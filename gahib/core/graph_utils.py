@@ -129,7 +129,8 @@ class MLPDecoder(nn.Module):
         row, col = edge_index
         edge_features = torch.cat([z[row], z[col]], dim=1)
         edge_probs = self.mlp(edge_features).squeeze()
-        adj_recon = torch.zeros((num_nodes, num_nodes), device=z.device)
+        # Match the dtype of the edge probabilities (float16 under CUDA autocast)
+        adj_recon = torch.zeros((num_nodes, num_nodes), device=z.device, dtype=edge_probs.dtype)
         adj_recon[row, col] = edge_probs
         return adj_recon
 
